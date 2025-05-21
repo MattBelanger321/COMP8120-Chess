@@ -52,6 +52,7 @@ namespace chess::pieces {
         virtual ~piece();
 
         // this helper function takes in the index of a rank and file and returns a position_t of it
+        // returns the coordiantes that are theoretically reachable from this square
         static std::optional< position_t > itopos( int const rank, int const file );
 
     protected:
