@@ -32,3 +32,4 @@
 *.app
 game/.$game.drawio.bkp
 build/
+.cache
