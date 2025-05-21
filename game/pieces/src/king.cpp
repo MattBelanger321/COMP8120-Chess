@@ -9,14 +9,25 @@ namespace chess::pieces {
         std::vector< position_t > moves;
 
         for ( int i = -1; i <= 1; i++ ) {
-            for ( int j = -1; j <= 1; j++ ) {
-                if ( i == 0 && j == 0 )
-                    continue;
+            if ( i == 0 )
+                continue;
 
-                if ( auto pos = itopos( static_cast< int >( rank ) + i, static_cast< int >( file ) + j );
-                     pos.has_value() ) {
-                    moves.push_back( *pos );
-                }
+            if ( auto pos = itopos( static_cast< int >( rank ) + i, static_cast< int >( file ) ); pos.has_value() ) {
+                moves.push_back( *pos );
+            }
+
+            if ( auto pos = itopos( static_cast< int >( rank ), static_cast< int >( file ) + i ); pos.has_value() ) {
+                moves.push_back( *pos );
+            }
+
+            if ( auto pos = itopos( static_cast< int >( rank ) + i, static_cast< int >( file ) + i );
+                 pos.has_value() ) {
+                moves.push_back( *pos );
+            }
+
+            if ( auto pos = itopos( static_cast< int >( rank ) - i, static_cast< int >( file ) + i );
+                 pos.has_value() ) {
+                moves.push_back( *pos );
             }
         }
 
