@@ -1,4 +1,6 @@
 #include <piece.hpp>
+#include <stdexcept>
+#include <string>
 
 namespace chess::pieces {
 
@@ -18,5 +20,27 @@ namespace chess::pieces {
     {
         rank = pos.first;
         file = pos.second;
+    }
+
+    position_t itopos( int const rank, int const file )
+    {
+
+        if ( rank > 8 ) {
+            std::runtime_error( "rank too large: rank=" + std::to_string( rank ) );
+        }
+
+        if ( file > 8 ) {
+            std::runtime_error( "file too large: file=" + std::to_string( file ) );
+        }
+
+        if ( rank < 1 ) {
+            std::runtime_error( "rank too small: rank=" + std::to_string( rank ) );
+        }
+
+        if ( file < 1 ) {
+            std::runtime_error( "file too small: file=" + std::to_string( file ) );
+        }
+
+        return { static_cast< rank_t >( rank ), static_cast< file_t >( file ) };
     }
 }  // namespace chess::pieces

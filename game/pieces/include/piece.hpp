@@ -15,25 +15,25 @@ namespace chess::pieces {
     };
 
     enum class rank_t {
-        a,
-        b,
-        c,
-        d,
-        e,
-        f,
-        g,
-        h,
+        a = 1,
+        b = 2,
+        c = 3,
+        d = 4,
+        e = 5,
+        f = 6,
+        g = 7,
+        h = 8,
     };
 
     enum class file_t {
-        one,
-        two,
-        three,
-        four,
-        five,
-        six,
-        seven,
-        eight,
+        one   = 1,
+        two   = 2,
+        three = 3,
+        four  = 4,
+        five  = 5,
+        six   = 6,
+        seven = 7,
+        eight = 8,
     };
 
     using position_t = std::pair< rank_t, file_t >;
@@ -50,10 +50,11 @@ namespace chess::pieces {
 
         virtual ~piece();
 
+        // this helper function takes in the index of a rank and file and returns a position_t of it
+        static position_t itopos( int const rank, int const file );
+
     protected:
         piece( bool const white, name_t const name, rank_t const rank, file_t const file );
-
-    private:
         name_t name;
         rank_t rank;
         file_t file;
