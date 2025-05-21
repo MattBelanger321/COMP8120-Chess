@@ -1,6 +1,7 @@
 #ifndef __CHESS__PIECES__PIECE__
 #define __CHESS__PIECES__PIECE__
 
+#include <optional>
 #include <utility>
 #include <vector>
 namespace chess::pieces {
@@ -51,7 +52,7 @@ namespace chess::pieces {
         virtual ~piece();
 
         // this helper function takes in the index of a rank and file and returns a position_t of it
-        static position_t itopos( int const rank, int const file );
+        static std::optional< position_t > itopos( int const rank, int const file );
 
     protected:
         piece( bool const white, name_t const name, rank_t const rank, file_t const file );

@@ -1,4 +1,3 @@
-#include "piece.hpp"
 #include <pawn.hpp>
 
 namespace chess::pieces {
@@ -16,35 +15,49 @@ namespace chess::pieces {
         }
 
         if ( is_white ) {
-            moves.push_back( itopos( static_cast< int >( rank ) + 1, static_cast< int >( file ) ) );
-
-            if ( static_cast< int >( file ) <= static_cast< int >( file_t::seven ) ) {
-                moves.push_back( itopos( static_cast< int >( rank ) + 1, static_cast< int >( file ) + 1 ) );
+            if ( auto pos = itopos( static_cast< int >( rank ) + 1, static_cast< int >( file ) ); pos.has_value() ) {
+                moves.push_back( *pos );
             }
 
-            if ( static_cast< int >( file ) >= static_cast< int >( file_t::two ) ) {
-                moves.push_back( itopos( static_cast< int >( rank ) + 1, static_cast< int >( file ) - 1 ) );
+            if ( auto pos = itopos( static_cast< int >( rank ) + 1, static_cast< int >( file ) + 1 );
+                 pos.has_value() ) {
+                moves.push_back( *pos );
+            }
+
+            if ( auto pos = itopos( static_cast< int >( rank ) + 1, static_cast< int >( file ) - 1 );
+                 pos.has_value() ) {
+                moves.push_back( *pos );
             }
 
             // first move
-            if ( static_cast< int >( rank ) == static_cast< int >( rank_t::b ) ) {
-                moves.push_back( itopos( static_cast< int >( rank ) + 2, static_cast< int >( file ) ) );
+            if ( rank == rank_t::b ) {
+                if ( auto pos = itopos( static_cast< int >( rank ) + 2, static_cast< int >( file ) );
+                     pos.has_value() ) {
+                    moves.push_back( *pos );
+                }
             }
         }
         else {
-            moves.push_back( itopos( static_cast< int >( rank ) - 1, static_cast< int >( file ) ) );
-
-            if ( static_cast< int >( file ) <= static_cast< int >( file_t::seven ) ) {
-                moves.push_back( itopos( static_cast< int >( rank ) - 1, static_cast< int >( file ) + 1 ) );
+            if ( auto pos = itopos( static_cast< int >( rank ) - 1, static_cast< int >( file ) ); pos.has_value() ) {
+                moves.push_back( *pos );
             }
 
-            if ( static_cast< int >( file ) >= static_cast< int >( file_t::two ) ) {
-                moves.push_back( itopos( static_cast< int >( rank ) - 1, static_cast< int >( file ) - 1 ) );
+            if ( auto pos = itopos( static_cast< int >( rank ) - 1, static_cast< int >( file ) + 1 );
+                 pos.has_value() ) {
+                moves.push_back( *pos );
+            }
+
+            if ( auto pos = itopos( static_cast< int >( rank ) - 1, static_cast< int >( file ) - 1 );
+                 pos.has_value() ) {
+                moves.push_back( *pos );
             }
 
             // first move
-            if ( static_cast< int >( rank ) == static_cast< int >( rank_t::g ) ) {
-                moves.push_back( itopos( static_cast< int >( rank ) - 2, static_cast< int >( file ) ) );
+            if ( rank == rank_t::g ) {
+                if ( auto pos = itopos( static_cast< int >( rank ) - 2, static_cast< int >( file ) );
+                     pos.has_value() ) {
+                    moves.push_back( *pos );
+                }
             }
         }
 

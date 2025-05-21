@@ -1,3 +1,4 @@
+#include <optional>
 #include <piece.hpp>
 #include <stdexcept>
 #include <string>
@@ -22,25 +23,25 @@ namespace chess::pieces {
         file = pos.second;
     }
 
-    position_t itopos( int const rank, int const file )
+    std::optional< position_t > itopos( int const rank, int const file )
     {
 
         if ( rank > 8 ) {
-            std::runtime_error( "rank too large: rank=" + std::to_string( rank ) );
+            return {};
         }
 
         if ( file > 8 ) {
-            std::runtime_error( "file too large: file=" + std::to_string( file ) );
+            return {};
         }
 
         if ( rank < 1 ) {
-            std::runtime_error( "rank too small: rank=" + std::to_string( rank ) );
+            return {};
         }
 
         if ( file < 1 ) {
-            std::runtime_error( "file too small: file=" + std::to_string( file ) );
+            return {};
         }
 
-        return { static_cast< rank_t >( rank ), static_cast< file_t >( file ) };
+        return std::make_optional< position_t >( { static_cast< rank_t >( rank ), static_cast< file_t >( file ) } );
     }
 }  // namespace chess::pieces
