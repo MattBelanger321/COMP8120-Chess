@@ -48,6 +48,8 @@ namespace chess::pieces {
 
         virtual std::vector< position_t > possible_moves() const = 0;
 
+        virtual ~piece();
+
     protected:
         piece( bool const white, name_t const name, rank_t const rank, file_t const file );
 
