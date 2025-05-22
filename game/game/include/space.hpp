@@ -23,6 +23,11 @@ namespace chess::game {
         pieces::position_t                       position() const;
 
         std::unique_ptr< pieces::piece > piece;
+
+        friend bool operator==( const space & lhs, const space & rhs )
+        {
+            return lhs.rank == rhs.rank && lhs.file == rhs.file;
+        }
     };
 }  // namespace chess::game
 
