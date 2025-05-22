@@ -23,7 +23,7 @@ namespace chess::pieces {
         file = pos.second;
     }
 
-    std::optional< position_t > itopos( int const rank, int const file )
+    std::optional< position_t > piece::itopos( int const rank, int const file )
     {
 
         if ( rank > 8 ) {
