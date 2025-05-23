@@ -9,15 +9,17 @@ namespace chess::game {
     class space {
 
     private:
-        const pieces::rank_t rank;
-        const pieces::file_t file;
-        bool                 is_white;
+        pieces::rank_t rank;
+        pieces::file_t file;
+        bool           is_white;
 
     public:
         space( bool const white, pieces::rank_t const rank, pieces::file_t const file,
                std::unique_ptr< pieces::piece > && piece = {} );
 
         space( space const & src );
+
+        space & operator=( space const & other );
 
         std::vector< pieces::position_t >        possible_moves() const;
         bool                                     colour() const;

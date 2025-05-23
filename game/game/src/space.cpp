@@ -18,6 +18,23 @@ namespace chess::game {
         }
     }
 
+    space & space::operator=( space const & other )
+    {
+        if ( this != &other ) {
+            is_white = other.is_white;
+            file     = other.file;
+            rank     = other.rank;
+
+            if ( other.piece ) {
+                piece = other.piece->copy_piece();  // deep copy
+            }
+            else {
+                piece.reset();  // clear the pointer if other has no piece
+            }
+        }
+        return *this;
+    }
+
     bool               space::colour() const { return is_white; }
     pieces::position_t space::position() const { return { rank, file }; }
 
