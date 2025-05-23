@@ -1,12 +1,15 @@
-#include "bishop.hpp"
-#include "king.hpp"
-#include "knight.hpp"
-#include "pawn.hpp"
-#include "queen.hpp"
-#include "rook.hpp"
+#include <bishop.hpp>
 #include <board.hpp>
+#include <king.hpp>
+#include <knight.hpp>
+#include <pawn.hpp>
+#include <queen.hpp>
+#include <rook.hpp>
+
+#include <algorithm>
 #include <memory>
 #include <sstream>
+#include <vector>
 
 namespace chess::game {
 
@@ -37,8 +40,49 @@ namespace chess::game {
             spaces.push_back( game_board.at( pos.first ).at( pos.second ) );
         }
 
+        switch ( src.piece->type() ) {
+        case pieces::name_t::rook:
+            filter_rook_moves( src, spaces );
+            break;
+        case pieces::name_t::knight:
+            filter_knight_moves( src, spaces );
+            break;
+        case pieces::name_t::bishop:
+            filter_bishop_moves( src, spaces );
+            break;
+        case pieces::name_t::king:
+            filter_king_moves( src, spaces );
+            break;
+        case pieces::name_t::queen:
+            filter_queen_moves( src, spaces );
+            break;
+        case pieces::name_t::pawn:
+            filter_pawn_moves( src, spaces );
+            break;
+        }
+
         return spaces;
     }
+
+    void board::filter_pawn_moves( space const & current, std::vector< space > & moves ) const {}
+    void board::filter_knight_moves( space const & current, std::vector< space > & moves ) const
+    {
+        if ( !current.piece ) {
+            return;
+        }
+
+        auto x = std::erase_if( moves, [&current]( space const & move ) {
+            return move.piece && move.piece->colour() == current.piece->colour();
+        } );
+    }
+    void board::filter_bishop_moves( space const & current, std::vector< space > & moves ) const {}
+    void board::filter_rook_moves( space const & current, std::vector< space > & moves ) const {}
+    void board::filter_queen_moves( space const & current, std::vector< space > & moves ) const
+    {
+        filter_rook_moves( current, moves );
+        filter_bishop_moves( current, moves );
+    }
+    void board::filter_king_moves( space const & current, std::vector< space > & moves ) const {}
 
     space const & board::get( pieces::position_t pos ) const { return game_board.at( pos.first ).at( pos.second ); }
 

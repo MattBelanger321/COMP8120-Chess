@@ -20,6 +20,8 @@ namespace chess::pieces {
         this->rank = rank;
     }
 
+    piece::piece( piece const & src ) {}
+
     std::unique_ptr< piece > piece::copy_piece() const { return copy_piece( *this ); }
 
     std::unique_ptr< piece > piece::copy_piece( piece const & src )

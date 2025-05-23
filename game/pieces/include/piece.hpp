@@ -105,6 +105,8 @@ namespace chess::pieces {
 
     class piece {
     public:
+        piece( piece const & src );
+
         bool       colour() const;
         name_t     type() const;
         position_t position() const;
