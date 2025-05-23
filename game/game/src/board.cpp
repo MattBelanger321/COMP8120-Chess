@@ -1,5 +1,6 @@
 #include <bishop.hpp>
 #include <board.hpp>
+#include <cstdlib>
 #include <king.hpp>
 #include <knight.hpp>
 #include <pawn.hpp>
@@ -64,7 +65,23 @@ namespace chess::game {
         return spaces;
     }
 
-    void board::filter_pawn_moves( space const & current, std::vector< space > & moves ) const {}
+    void board::filter_pawn_moves( space const & current, std::vector< space > & moves ) const
+    {
+        if ( !current.piece ) {
+            return;
+        }
+
+        for ( auto const & move : moves ) {
+            if ( std::abs( static_cast< int >( current.position().second ) -
+                           static_cast< int >( move.position().second ) ) == 1 ) {
+                if ( !move.piece || move.piece->colour() == current.piece->colour() ) {
+                    moves.
+                    // TODO: watch for shift errors
+                }
+            }
+        }
+    }
+
     void board::filter_knight_moves( space const & current, std::vector< space > & moves ) const
     {
         if ( !current.piece ) {
