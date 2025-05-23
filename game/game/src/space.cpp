@@ -1,5 +1,6 @@
-#include "piece.hpp"
+#include <algorithm>
 #include <memory>
+#include <piece.hpp>
 #include <space.hpp>
 
 namespace chess::game {
@@ -23,7 +24,16 @@ namespace chess::game {
     std::vector< pieces::position_t > space::possible_moves() const
     {
         if ( piece ) {
-            return piece->possible_moves();
+            auto moves = piece->possible_moves();
+
+            // sort by letter then rank
+            std::sort( moves.begin(), moves.end(), []( const pieces::position_t & a, const pieces::position_t & b ) {
+                if ( static_cast< int >( a.second ) == static_cast< int >( b.second ) )
+                    return static_cast< int >( a.first ) < static_cast< int >( b.first );
+                return static_cast< int >( a.second ) < static_cast< int >( b.second );
+            } );
+
+            return moves;
         }
         return {};
     }
