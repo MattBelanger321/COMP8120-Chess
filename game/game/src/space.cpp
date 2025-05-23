@@ -1,3 +1,4 @@
+#include "piece.hpp"
 #include <memory>
 #include <space.hpp>
 
@@ -7,6 +8,13 @@ namespace chess::game {
                   std::unique_ptr< pieces::piece > && piece ) :
         is_white( white ), file( file ), rank( rank ), piece( std::move( piece ) )
     {
+    }
+
+    space::space( space const & src ) : is_white( src.is_white ), file( src.file ), rank( src.rank )
+    {
+        if ( src.piece ) {
+            piece = src.piece->copy_piece();
+        }
     }
 
     bool               space::colour() const { return is_white; }

@@ -27,6 +27,21 @@ namespace chess::game {
             place_pieces();
     }
 
+    std::vector< space > board::possible_moves( space const & src ) const
+    {
+        auto positions = src.possible_moves();  //
+
+        std::vector< space > spaces;
+
+        for ( auto const & pos : positions ) {
+            spaces.push_back( game_board.at( pos.first ).at( pos.second ) );
+        }
+
+        return spaces;
+    }
+
+    space const & board::get( pieces::position_t pos ) const { return game_board.at( pos.first ).at( pos.second ); }
+
     std::string board::to_string()
     {
         std::stringstream serialized;
@@ -92,28 +107,28 @@ namespace chess::game {
             auto file = static_cast< pieces::file_t >( j );
 
             switch ( file ) {
-            case pieces::file_t::one:
+            case pieces::file_t::a:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::rook >( colour, rank, file );
                 break;
-            case pieces::file_t::two:
+            case pieces::file_t::b:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::knight >( colour, rank, file );
                 break;
-            case pieces::file_t::three:
+            case pieces::file_t::c:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::bishop >( colour, rank, file );
                 break;
-            case pieces::file_t::four:
+            case pieces::file_t::d:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::queen >( colour, rank, file );
                 break;
-            case pieces::file_t::five:
+            case pieces::file_t::e:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::king >( colour, rank, file );
                 break;
-            case pieces::file_t::six:
+            case pieces::file_t::f:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::bishop >( colour, rank, file );
                 break;
-            case pieces::file_t::seven:
+            case pieces::file_t::g:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::knight >( colour, rank, file );
                 break;
-            case pieces::file_t::eight:
+            case pieces::file_t::h:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::rook >( colour, rank, file );
                 break;
             }
@@ -125,28 +140,28 @@ namespace chess::game {
             auto file = static_cast< pieces::file_t >( j );
 
             switch ( file ) {
-            case pieces::file_t::one:
+            case pieces::file_t::a:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::rook >( colour, rank, file );
                 break;
-            case pieces::file_t::two:
+            case pieces::file_t::b:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::knight >( colour, rank, file );
                 break;
-            case pieces::file_t::three:
+            case pieces::file_t::c:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::bishop >( colour, rank, file );
                 break;
-            case pieces::file_t::four:
+            case pieces::file_t::d:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::queen >( colour, rank, file );
                 break;
-            case pieces::file_t::five:
+            case pieces::file_t::e:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::king >( colour, rank, file );
                 break;
-            case pieces::file_t::six:
+            case pieces::file_t::f:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::bishop >( colour, rank, file );
                 break;
-            case pieces::file_t::seven:
+            case pieces::file_t::g:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::knight >( colour, rank, file );
                 break;
-            case pieces::file_t::eight:
+            case pieces::file_t::h:
                 game_board.at( rank ).at( file ).piece = std::make_unique< pieces::rook >( colour, rank, file );
                 break;
             }

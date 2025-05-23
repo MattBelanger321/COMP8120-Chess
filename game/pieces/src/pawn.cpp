@@ -8,8 +8,8 @@ namespace chess::pieces {
         std::vector< position_t > moves;
 
         // pawn on the back rank
-        if ( static_cast< int >( rank ) >= static_cast< int >( rank_t::h ) ||
-             static_cast< int >( rank ) <= static_cast< int >( rank_t::a ) ) {
+        if ( static_cast< int >( rank ) >= static_cast< int >( rank_t::eight ) ||
+             static_cast< int >( rank ) <= static_cast< int >( rank_t::one ) ) {
             // TODO: log error
             return {};
         }
@@ -30,7 +30,7 @@ namespace chess::pieces {
             }
 
             // first move
-            if ( rank == rank_t::b ) {
+            if ( rank == rank_t::two ) {
                 if ( auto pos = itopos( static_cast< int >( rank ) + 2, static_cast< int >( file ) );
                      pos.has_value() ) {
                     moves.push_back( *pos );
@@ -53,7 +53,7 @@ namespace chess::pieces {
             }
 
             // first move
-            if ( rank == rank_t::g ) {
+            if ( rank == rank_t::seven ) {
                 if ( auto pos = itopos( static_cast< int >( rank ) - 2, static_cast< int >( file ) );
                      pos.has_value() ) {
                     moves.push_back( *pos );
