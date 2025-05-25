@@ -1,4 +1,6 @@
 #include <board.hpp>
+#include <ci_controller.hpp>
+#include <controller.hpp>
 #include <piece.hpp>
 #include <space.hpp>
 
@@ -6,12 +8,8 @@
 
 int main()
 {
-    chess::game::board game_board;
-
-    std::cout << game_board.to_string() << "\n";
-
-    game_board.move( { chess::pieces::rank_t::one, chess::pieces::file_t::e },
-                     { chess::pieces::rank_t::eight, chess::pieces::file_t::e } );
-
-    std::cout << game_board.to_string() << "\n";
+    chess::controller::ci_controller cont;
+    cont.run();
+    while ( true )
+        ;
 }

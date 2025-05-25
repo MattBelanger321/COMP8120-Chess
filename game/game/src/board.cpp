@@ -105,7 +105,7 @@ namespace chess::game {
                         auto file_val = static_cast< int >( move.position().second );
                         if ( piece_colour ) {  // if the piece is white
 
-                            if ( rank_val != 2 ) {
+                            if ( static_cast< int >( current.position().first ) != 2 ) {
                                 return true;  // pawn has moved
                             }
 
@@ -116,7 +116,7 @@ namespace chess::game {
                         }
                         else {  // if it is black
 
-                            if ( rank_val != 7 ) {
+                            if ( static_cast< int >( current.position().first ) != 7 ) {
                                 return true;  // pawn has moved
                             }
 
@@ -367,7 +367,7 @@ namespace chess::game {
 
     space const & board::get( pieces::position_t pos ) const { return game_board.at( pos.first ).at( pos.second ); }
 
-    std::string board::to_string()
+    std::string board::to_string() const
     {
         std::stringstream serialized;
 
@@ -377,7 +377,7 @@ namespace chess::game {
                 auto rank = static_cast< pieces::rank_t >( i );
                 auto file = static_cast< pieces::file_t >( j );
 
-                space & current_space = game_board.at( rank ).at( file );
+                space const & current_space = game_board.at( rank ).at( file );
 
                 if ( current_space.piece ) {
                     char piece_icon;

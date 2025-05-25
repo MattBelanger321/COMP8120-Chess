@@ -2,6 +2,7 @@
 #define __CHESS__GAME__
 
 #include <board.hpp>
+#include <piece.hpp>
 #include <space.hpp>
 
 namespace chess {
@@ -22,6 +23,12 @@ namespace chess {
     class chess_game {
     public:
         void move( game::space const & src, game::space const & dst );
+
+        game::space const & get( pieces::position_t const & pos ) const;
+
+        std::string to_string() const;
+
+        std::vector< game::space > possible_moves( game::space const & src ) const;
 
     private:
         game_state  state;

@@ -37,7 +37,7 @@ namespace chess::game {
 
         void move( pieces::position_t const & src, pieces::position_t const & dst );
 
-        std::string to_string();
+        std::string to_string() const;
 
         // returns a reference to the space at the given position
         space const & get( pieces::position_t pos ) const;

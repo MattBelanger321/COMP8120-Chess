@@ -7,6 +7,8 @@ add_library(${PROJECT_NAME}
 	include/controller.hpp
 	include/display.hpp
 	include/server_controller.hpp
+	include/ci_controller.hpp
+	src/ci_controller.cpp
 	src/ai_controller.cpp
 	src/controller.cpp
 	src/display.cpp
@@ -25,4 +27,6 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC
+	game_lib
+	pieces
 )
