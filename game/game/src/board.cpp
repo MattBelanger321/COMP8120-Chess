@@ -36,6 +36,10 @@ namespace chess::game {
     {
         auto positions = src.possible_moves();  //
 
+        if ( positions.empty() ) {
+            return {};
+        }
+
         std::vector< space > spaces;
 
         for ( auto const & pos : positions ) {
@@ -128,8 +132,216 @@ namespace chess::game {
             return move.piece && move.piece->colour() == current.piece->colour();
         } );
     }
-    void board::filter_bishop_moves( space const & current, std::vector< space > & moves ) const {}
-    void board::filter_rook_moves( space const & current, std::vector< space > & moves ) const {}
+
+    void board::filter_bishop_moves( space const & current, std::vector< space > & moves ) const
+    {
+        auto rank_val = static_cast< int >( current.position().first );
+        auto file_val = static_cast< int >( current.position().second );
+
+        int left_boundary   = static_cast< int >( file_val ) - 1;
+        int right_boundary  = 8 - static_cast< int >( file_val );
+        int bottom_boundary = static_cast< int >( rank_val ) - 1;
+        int top_boundary    = 8 - static_cast< int >( rank_val );
+
+        std::vector< pieces::position_t > to_delete;
+
+        bool blocked = false;
+        for ( int i = 1; i <= right_boundary && i <= top_boundary; i++ ) {
+            if ( blocked ) {
+                auto const & space = game_board.at( static_cast< pieces::rank_t >( rank_val + i ) )
+                                         .at( static_cast< pieces::file_t >( file_val + i ) );
+                to_delete.push_back( space.position() );
+            }
+
+            auto const & piece = game_board.at( static_cast< pieces::rank_t >( rank_val + i ) )
+                                     .at( static_cast< pieces::file_t >( file_val + i ) )
+                                     .piece;
+
+            if ( piece ) {
+                // if the piece encountered is the same colour then we cant move there
+                if ( piece->colour() == current.piece->colour() ) {
+                    to_delete.push_back( piece->position() );
+                }
+                blocked = true;
+            }
+        }
+
+        blocked = false;
+        for ( int i = 1; i <= left_boundary && i <= top_boundary; i++ ) {
+            if ( blocked ) {
+                auto const & space = game_board.at( static_cast< pieces::rank_t >( rank_val + i ) )
+                                         .at( static_cast< pieces::file_t >( file_val - i ) );
+                to_delete.push_back( space.position() );
+            }
+
+            auto const & piece = game_board.at( static_cast< pieces::rank_t >( rank_val + i ) )
+                                     .at( static_cast< pieces::file_t >( file_val - i ) )
+                                     .piece;
+
+            if ( piece ) {
+                // if the piece encountered is the same colour then we cant move there
+                if ( piece->colour() == current.piece->colour() ) {
+                    to_delete.push_back( piece->position() );
+                }
+                blocked = true;
+            }
+        }
+
+        blocked = false;
+        for ( int i = 1; i <= left_boundary && i <= bottom_boundary; i++ ) {
+            if ( blocked ) {
+                auto const & space = game_board.at( static_cast< pieces::rank_t >( rank_val - i ) )
+                                         .at( static_cast< pieces::file_t >( file_val - i ) );
+                to_delete.push_back( space.position() );
+            }
+
+            auto const & piece = game_board.at( static_cast< pieces::rank_t >( rank_val - i ) )
+                                     .at( static_cast< pieces::file_t >( file_val - i ) )
+                                     .piece;
+
+            if ( piece ) {
+                // if the piece encountered is the same colour then we cant move there
+                if ( piece->colour() == current.piece->colour() ) {
+                    to_delete.push_back( piece->position() );
+                }
+                blocked = true;
+            }
+        }
+
+        blocked = false;
+        for ( int i = 1; i <= right_boundary && i <= bottom_boundary; i++ ) {
+            if ( blocked ) {
+                auto const & space = game_board.at( static_cast< pieces::rank_t >( rank_val - i ) )
+                                         .at( static_cast< pieces::file_t >( file_val + i ) );
+                to_delete.push_back( space.position() );
+            }
+
+            auto const & piece = game_board.at( static_cast< pieces::rank_t >( rank_val - i ) )
+                                     .at( static_cast< pieces::file_t >( file_val + i ) )
+                                     .piece;
+
+            if ( piece ) {
+                // if the piece encountered is the same colour then we cant move there
+                if ( piece->colour() == current.piece->colour() ) {
+                    to_delete.push_back( piece->position() );
+                }
+                blocked = true;
+            }
+        }
+
+        // game class will handle check and castling logic
+        auto x = std::erase_if( moves, [&to_delete]( space const & move ) {
+            for ( auto del : to_delete ) {
+                if ( del == move ) {
+                    return true;
+                }
+            }
+            return false;
+        } );
+    }
+
+    void board::filter_rook_moves( space const & current, std::vector< space > & moves ) const
+    {
+        auto rank_val = static_cast< int >( current.position().first );
+        auto file_val = static_cast< int >( current.position().second );
+
+        int left_boundary   = static_cast< int >( file_val ) - 1;
+        int right_boundary  = 8 - static_cast< int >( file_val );
+        int bottom_boundary = static_cast< int >( rank_val ) - 1;
+        int top_boundary    = 8 - static_cast< int >( rank_val );
+
+        std::vector< pieces::position_t > to_delete;
+
+        bool blocked = false;
+        for ( int i = 1; i <= right_boundary; i++ ) {
+            if ( blocked ) {
+                auto const & space =
+                    game_board.at( current.position().first ).at( static_cast< pieces::file_t >( file_val + i ) );
+                to_delete.push_back( space.position() );
+            }
+
+            auto const & piece =
+                game_board.at( current.position().first ).at( static_cast< pieces::file_t >( file_val + i ) ).piece;
+
+            if ( piece ) {
+                // if the piece encountered is the same colour then we cant move there
+                if ( piece->colour() == current.piece->colour() ) {
+                    to_delete.push_back( piece->position() );
+                }
+                blocked = true;
+            }
+        }
+
+        blocked = false;
+        for ( int i = 1; i <= left_boundary; i++ ) {
+            if ( blocked ) {
+                auto const & space =
+                    game_board.at( current.position().first ).at( static_cast< pieces::file_t >( file_val - i ) );
+                to_delete.push_back( space.position() );
+            }
+
+            auto const & piece =
+                game_board.at( current.position().first ).at( static_cast< pieces::file_t >( file_val - i ) ).piece;
+
+            if ( piece ) {
+                // if the piece encountered is the same colour then we cant move there
+                if ( piece->colour() == current.piece->colour() ) {
+                    to_delete.push_back( piece->position() );
+                }
+                blocked = true;
+            }
+        }
+
+        blocked = false;
+        for ( int i = 1; i <= top_boundary; i++ ) {
+            if ( blocked ) {
+                auto const & space =
+                    game_board.at( static_cast< pieces::rank_t >( rank_val + i ) ).at( current.position().second );
+                to_delete.push_back( space.position() );
+            }
+
+            auto const & piece =
+                game_board.at( static_cast< pieces::rank_t >( rank_val + i ) ).at( current.position().second ).piece;
+
+            if ( piece ) {
+                // if the piece encountered is the same colour then we cant move there
+                if ( piece->colour() == current.piece->colour() ) {
+                    to_delete.push_back( piece->position() );
+                }
+                blocked = true;
+            }
+        }
+
+        blocked = false;
+        for ( int i = 1; i <= bottom_boundary; i++ ) {
+            if ( blocked ) {
+                auto const & space =
+                    game_board.at( static_cast< pieces::rank_t >( rank_val - i ) ).at( current.position().second );
+                to_delete.push_back( space.position() );
+            }
+
+            auto const & piece =
+                game_board.at( static_cast< pieces::rank_t >( rank_val - i ) ).at( current.position().second ).piece;
+
+            if ( piece ) {
+                // if the piece encountered is the same colour then we cant move there
+                if ( piece->colour() == current.piece->colour() ) {
+                    to_delete.push_back( piece->position() );
+                }
+                blocked = true;
+            }
+        }
+
+        // game class will handle check and castling logic
+        auto x = std::erase_if( moves, [&to_delete]( space const & move ) {
+            for ( auto del : to_delete ) {
+                if ( del == move ) {
+                    return true;
+                }
+            }
+            return false;
+        } );
+    }
     void board::filter_queen_moves( space const & current, std::vector< space > & moves ) const
     {
         filter_rook_moves( current, moves );

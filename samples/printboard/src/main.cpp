@@ -9,7 +9,7 @@ int main()
 
     std::cout << game_board.to_string() << "\n";
 
-    auto const & space = game_board.get( { chess::pieces::rank_t::one, chess::pieces::file_t::e } );
+    auto const & space = game_board.get( { chess::pieces::rank_t::five, chess::pieces::file_t::d } );
 
     auto possible_spaces = game_board.possible_moves( space );
 
