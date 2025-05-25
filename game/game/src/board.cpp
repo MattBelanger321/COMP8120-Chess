@@ -1,3 +1,4 @@
+#include "piece.hpp"
 #include <bishop.hpp>
 #include <board.hpp>
 #include <cstdlib>
@@ -71,15 +72,50 @@ namespace chess::game {
             return;
         }
 
-        for ( auto const & move : moves ) {
+        auto piece_colour = current.piece->colour();
+
+        auto x = std::erase_if( moves, [&current, &piece_colour, this]( space const & move ) {
             if ( std::abs( static_cast< int >( current.position().second ) -
                            static_cast< int >( move.position().second ) ) == 1 ) {
-                if ( !move.piece || move.piece->colour() == current.piece->colour() ) {
-                    moves.
-                    // TODO: watch for shift errors
+                return !move.piece || move.piece->colour() == current.piece->colour();
+            }
+            else {
+                if ( std::abs( static_cast< int >( current.position().first ) -
+                               static_cast< int >( move.position().first ) ) >= 1 ) {
+                    if ( move.piece ) {
+                        return true;
+                    }
+                    else if ( std::abs( static_cast< int >( current.position().first ) -
+                                        static_cast< int >( move.position().first ) ) == 2 ) {
+                        auto rank_val = static_cast< int >( move.position().first );
+                        auto file_val = static_cast< int >( move.position().second );
+                        if ( piece_colour ) {  // if the piece is white
+
+                            if ( rank_val != 2 ) {
+                                return true;  // pawn has moved
+                            }
+
+                            bool piece_infront = game_board.at( pieces::rank_t( rank_val - 1 ) )
+                                                     .at( pieces::file_t( file_val ) )
+                                                     .piece.get();
+                            return piece_infront;
+                        }
+                        else {  // if it is black
+
+                            if ( rank_val != 7 ) {
+                                return true;  // pawn has moved
+                            }
+
+                            bool piece_infront = game_board.at( pieces::rank_t( rank_val + 1 ) )
+                                                     .at( pieces::file_t( file_val ) )
+                                                     .piece.get();
+                            return piece_infront;
+                        }
+                    }
                 }
             }
-        }
+            return false;
+        } );
     }
 
     void board::filter_knight_moves( space const & current, std::vector< space > & moves ) const
