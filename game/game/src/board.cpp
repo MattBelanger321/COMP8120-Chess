@@ -135,7 +135,13 @@ namespace chess::game {
         filter_rook_moves( current, moves );
         filter_bishop_moves( current, moves );
     }
-    void board::filter_king_moves( space const & current, std::vector< space > & moves ) const {}
+    void board::filter_king_moves( space const & current, std::vector< space > & moves ) const
+    {
+        // game class will handle check and castling logic
+        auto x = std::erase_if( moves, [&current]( space const & move ) {
+            return move.piece && move.piece->colour() == current.piece->colour();
+        } );
+    }
 
     space const & board::get( pieces::position_t pos ) const { return game_board.at( pos.first ).at( pos.second ); }
 
