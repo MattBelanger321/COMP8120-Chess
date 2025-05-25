@@ -42,7 +42,29 @@ namespace chess::controller {
             for ( auto const & move : possible_moves ) {
                 std::cout << to_string( move.position() ) << ", ";
             }
-            std::cout << "\n";
+            std::cout << "\nSelect Your Destination\n";
+
+            rank = -1;
+            do {
+                std::cout << "Select a Rank To Move To(1-8): ";
+                std::cin >> rank;
+            } while ( rank < 1 || rank > 8 );
+
+            file = '\0';
+            do {
+                std::cout << "Select a File To Move To(a-h): ";
+                std::cin >> file;
+            } while ( ( file < 'a' || file > 'h' ) && ( file < 'A' || file > 'H' ) );
+
+            file = std::toupper( file );
+
+            pieces::position_t mov_pos = { static_cast< pieces::rank_t >( rank ),
+                                           static_cast< pieces::file_t >( file - ( 'A' - 1 ) ) };
+
+            move( game.get( mov_pos ) );
+
+            std::cout << "You Moved From Space: " << to_string( selected_space.value().position() )
+                      << "To Space: " << to_string( mov_pos ) << "\n";
         }
     }
 
