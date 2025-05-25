@@ -150,7 +150,7 @@ namespace chess::game {
         std::stringstream serialized;
 
         for ( int i = 8; i > 0; i-- ) {
-            serialized << "|";
+            serialized << i << "\t|";
             for ( int j = 1; j <= 8; j++ ) {
                 auto rank = static_cast< pieces::rank_t >( i );
                 auto file = static_cast< pieces::file_t >( j );
@@ -198,6 +198,12 @@ namespace chess::game {
             }
             serialized << "\n";
         }
+
+        serialized << "\n\t ";
+        for ( int j = 1; j <= 8; j++ ) {
+            serialized << char( 'A' + j - 1 ) << " ";
+        }
+        serialized << "\n";
         return serialized.str();
     }
 
