@@ -63,8 +63,8 @@ namespace chess::controller {
 
             move( game.get( mov_pos ) );
 
-            std::cout << "You Moved From Space: " << to_string( selected_space.value().position() )
-                      << "To Space: " << to_string( mov_pos ) << "\n";
+            std::cout << "You Moved From Space: " << to_string( sel_pos ) << " To Space: " << to_string( mov_pos )
+                      << "\n";
         }
     }
 
