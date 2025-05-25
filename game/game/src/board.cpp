@@ -32,6 +32,16 @@ namespace chess::game {
             place_pieces();
     }
 
+    void board::move( pieces::position_t const & src, pieces::position_t const & dst )
+    {
+        if ( !game_board.at( src.first ).at( src.second ).piece )
+            return;
+
+        game_board.at( dst.first )
+            .at( dst.second )
+            .piece.reset( game_board.at( src.first ).at( src.second ).piece.release() );
+    }
+
     std::vector< space > board::possible_moves( space const & src ) const
     {
         auto positions = src.possible_moves();  //

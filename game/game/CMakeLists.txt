@@ -4,11 +4,12 @@ project(game_lib LANGUAGES CXX)
 
 add_library(${PROJECT_NAME}
 	include/board.hpp
-	include/game.hpp
 	include/space.hpp
+	include/game.hpp
+
 	src/board.cpp
-	src/game.cpp
 	src/space.cpp
+	src/game.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)

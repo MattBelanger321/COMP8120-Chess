@@ -1,8 +1,8 @@
 #ifndef __CHESS__GAME__BOARD__
 #define __CHESS__GAME__BOARD__
 
-#include "piece.hpp"
 #include <map>
+#include <piece.hpp>
 #include <space.hpp>
 
 namespace chess::game {
@@ -35,8 +35,7 @@ namespace chess::game {
 
         std::vector< space > possible_moves( space const & src ) const;
 
-        // TODO:
-        // void move( space & src, space & dst );
+        void move( pieces::position_t const & src, pieces::position_t const & dst );
 
         std::string to_string();
 

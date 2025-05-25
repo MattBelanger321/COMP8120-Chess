@@ -1,5 +1,6 @@
-#include "piece.hpp"
 #include <board.hpp>
+#include <piece.hpp>
+#include <space.hpp>
 
 #include <iostream>
 
@@ -9,11 +10,8 @@ int main()
 
     std::cout << game_board.to_string() << "\n";
 
-    auto const & space = game_board.get( { chess::pieces::rank_t::five, chess::pieces::file_t::d } );
+    game_board.move( { chess::pieces::rank_t::one, chess::pieces::file_t::e },
+                     { chess::pieces::rank_t::eight, chess::pieces::file_t::e } );
 
-    auto possible_spaces = game_board.possible_moves( space );
-
-    for ( auto const & space : possible_spaces ) {
-        std::cout << to_string( space.position() ) << "\n";
-    }
+    std::cout << game_board.to_string() << "\n";
 }
