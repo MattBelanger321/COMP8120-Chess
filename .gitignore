@@ -33,3 +33,4 @@
 game/.$game.drawio.bkp
 build/
 .cache
+output.txt
