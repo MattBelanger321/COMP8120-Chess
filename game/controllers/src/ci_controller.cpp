@@ -11,6 +11,25 @@ namespace chess::controller {
         while ( !should_close ) {
             std::cout << game.to_string() << "\n";
 
+            char file = '\0';
+            do {
+
+                std::cout << "\nSelect a File (a-h): ";
+                std::cin >> file;
+
+                if ( should_close ) {
+                    return;
+                }
+
+                if ( std::cin.fail() ) {
+                    std::cin.clear();                                                        // Clear the error flag
+                    std::cin.ignore( std::numeric_limits< std::streamsize >::max(), '\n' );  // Discard invalid input
+                    std::cout << "\nInvalid input.\n";
+                }
+            } while ( ( file < 'a' || file > 'h' ) && ( file < 'A' || file > 'H' ) );
+
+            file = std::toupper( file );
+
             int rank = -1;
             do {
 
@@ -32,25 +51,6 @@ namespace chess::controller {
                     std::cout << "\nInvalid input.\n";
                 }
             } while ( rank < 1 || rank > 8 );
-
-            char file = '\0';
-            do {
-
-                std::cout << "\nSelect a File (a-h): ";
-                std::cin >> file;
-
-                if ( should_close ) {
-                    return;
-                }
-
-                if ( std::cin.fail() ) {
-                    std::cin.clear();                                                        // Clear the error flag
-                    std::cin.ignore( std::numeric_limits< std::streamsize >::max(), '\n' );  // Discard invalid input
-                    std::cout << "\nInvalid input.\n";
-                }
-            } while ( ( file < 'a' || file > 'h' ) && ( file < 'A' || file > 'H' ) );
-
-            file = std::toupper( file );
 
             pieces::position_t sel_pos = { static_cast< pieces::rank_t >( rank ),
                                            static_cast< pieces::file_t >( file - ( 'A' - 1 ) ) };
@@ -83,6 +83,25 @@ namespace chess::controller {
             }
             std::cout << "\nSelect Your Destination\n";
 
+            file = '\0';
+            do {
+
+                std::cout << "\nSelect a File To Move To(a-h): ";
+                std::cin >> file;
+
+                if ( should_close ) {
+                    return;
+                }
+
+                if ( std::cin.fail() ) {
+                    std::cin.clear();                                                        // Clear the error flag
+                    std::cin.ignore( std::numeric_limits< std::streamsize >::max(), '\n' );  // Discard invalid input
+                    std::cout << "\nInvalid input.\n";
+                }
+            } while ( ( file < 'a' || file > 'h' ) && ( file < 'A' || file > 'H' ) );
+
+            file = std::toupper( file );
+
             rank = -1;
             do {
                 std::cout << "\nSelect a Rank To Move To(1-8): ";
@@ -102,25 +121,6 @@ namespace chess::controller {
                     std::cout << "\nInvalid input.\n";
                 }
             } while ( rank < 1 || rank > 8 );
-
-            file = '\0';
-            do {
-
-                std::cout << "\nSelect a File To Move To(a-h): ";
-                std::cin >> file;
-
-                if ( should_close ) {
-                    return;
-                }
-
-                if ( std::cin.fail() ) {
-                    std::cin.clear();                                                        // Clear the error flag
-                    std::cin.ignore( std::numeric_limits< std::streamsize >::max(), '\n' );  // Discard invalid input
-                    std::cout << "\nInvalid input.\n";
-                }
-            } while ( ( file < 'a' || file > 'h' ) && ( file < 'A' || file > 'H' ) );
-
-            file = std::toupper( file );
 
             pieces::position_t mov_pos = { static_cast< pieces::rank_t >( rank ),
                                            static_cast< pieces::file_t >( file - ( 'A' - 1 ) ) };
