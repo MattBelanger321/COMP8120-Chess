@@ -1,5 +1,5 @@
-#include "board.hpp"
 #include <algorithm>
+#include <board.hpp>
 #include <game.hpp>
 #include <string>
 
