@@ -11,6 +11,10 @@ namespace chess::controller {
         while ( !should_close ) {
             std::cout << game.to_string() << "\n";
 
+            if ( std::cin.eof() ) {
+                return;
+            }
+
             char file = '\0';
             do {
 
@@ -108,10 +112,6 @@ namespace chess::controller {
                 std::cin >> rank;
 
                 if ( should_close ) {
-                    return;
-                }
-
-                if ( std::cin.eof() ) {
                     return;
                 }
 
