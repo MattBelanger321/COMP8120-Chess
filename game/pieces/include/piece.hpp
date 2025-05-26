@@ -73,6 +73,8 @@ namespace chess::pieces {
             return "THERE IS NO PIECE AT THIS SPACE TO MOVE";
         case move_status::no_space_to_move_from:
             return "YOU NEED TO SELECT A SPACE FIRST";
+        case move_status::illegal_move:
+            return "ILLEGAL MOVE";
         }
 
         return "INVALID STATUS CODE";
