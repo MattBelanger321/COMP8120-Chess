@@ -26,7 +26,7 @@ namespace chess {
     public:
         chess_game();
 
-        bool move( game::space const & src, game::space const & dst );
+        pieces::move_status move( game::space const & src, game::space const & dst );
 
         game::space const & get( pieces::position_t const & pos ) const;
 

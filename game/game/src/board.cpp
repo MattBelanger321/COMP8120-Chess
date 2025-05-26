@@ -35,7 +35,7 @@ namespace chess::game {
             place_pieces();
     }
 
-    void board::move( pieces::position_t const & src, pieces::position_t const & dst )
+    void board::move_force( pieces::position_t const & src, pieces::position_t const & dst )
     {
         if ( !game_board.at( src.first ).at( src.second ).piece )
             return;
@@ -43,8 +43,24 @@ namespace chess::game {
         game_board.at( dst.first )
             .at( dst.second )
             .piece.reset( game_board.at( src.first ).at( src.second ).piece.release() );
+    }
 
-        game_board.at( dst.first ).at( dst.second ).piece->move( dst );
+    pieces::move_status board::move( pieces::position_t const & src, pieces::position_t const & dst )
+    {
+        auto status = game_board.at( dst.first ).at( dst.second ).piece->move( dst );
+
+        if ( status != pieces::move_status::valid ) {
+            return status;
+        }
+
+        auto const & moves = possible_moves( game_board.at( src.first ).at( src.second ) );
+
+        if ( std::find( moves.begin(), moves.end(), dst ) == moves.end() ) {
+            return pieces::move_status::board_state_error;
+        }
+
+        move_force( src, dst );
+        return pieces::move_status::valid;
     }
 
     std::vector< space > board::possible_moves( space const & src ) const

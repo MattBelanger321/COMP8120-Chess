@@ -28,19 +28,23 @@ namespace chess {
             *reinterpret_cast< pieces::king * >( game_board.get( pieces::piece::itopos( 8, 5 ).value() ).piece.get() );
     }
 
-    bool chess_game::move( game::space const & src, game::space const & dst )
+    pieces::move_status chess_game::move( game::space const & src, game::space const & dst )
     {
         if ( !src.piece ) {
-            return false;
+            return pieces::move_status::no_piece_to_move;
         }
 
         auto const & pos = possible_moves( src );
 
         if ( pos.empty() || std::find( pos.begin(), pos.end(), dst ) == pos.end() ) {
-            return false;
+            return pieces::move_status::invalid_turn;
         }
 
-        game_board.move( src.position(), dst.position() );
+        auto status = game_board.move( src.position(), dst.position() );
+
+        if ( status != pieces::move_status::valid ) {
+            return status;
+        }
 
         if ( white_move() ) {
             state = game_state::black_move;
@@ -49,7 +53,7 @@ namespace chess {
             state = game_state::white_move;
         }
 
-        return true;
+        return pieces::move_status::valid;
     }
 
     bool chess_game::white_move() const { return state == game_state::white_move || state == game_state::white_check; }
@@ -60,7 +64,7 @@ namespace chess {
 
     std::string chess_game::to_string() const { return game_board.to_string(); }
 
-    std::vector< game::space > chess_game::possible_moves( game::space const & src ) const
+    move_status chess_game::possible_moves( game::space const & src, std::vector< game::space > & possible_moves ) const
     {
 
         if ( src.piece->colour() ) {
@@ -74,7 +78,7 @@ namespace chess {
             }
         }
 
-        return game_board.possible_moves( src );
+        possible_moves = game_board.possible_moves( src );
     }
 
 }  // namespace chess

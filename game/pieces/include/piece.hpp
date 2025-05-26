@@ -40,6 +40,16 @@ namespace chess::pieces {
         eight = 8,
     };
 
+    enum class move_status {
+        valid,
+        piece_error,         // the piece doesnt move like that
+        board_state_error,   // the board state doesnt allow for that (ex piece in the way)
+        invalid_turn,        // not your turn
+        doesnt_leave_check,  // you were in check and did not avoid it
+        enters_check,        // this moves puts you in check
+        no_piece_to_move,    // there is no piece to move
+    };
+
     using position_t = std::pair< rank_t, file_t >;
 
     inline std::string to_string( position_t position )
@@ -111,7 +121,11 @@ namespace chess::pieces {
         name_t     type() const;
         position_t position() const;
 
-        void move( position_t const dst );
+        // this function never fails
+        void place( position_t const pos );
+
+        // this function will fail if this move is not vaild
+        move_status move( position_t const dst );
 
         virtual std::vector< position_t > possible_moves() const = 0;
 
