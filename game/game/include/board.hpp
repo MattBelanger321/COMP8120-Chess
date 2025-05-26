@@ -36,7 +36,7 @@ namespace chess::game {
         std::vector< space > possible_moves( space const & src ) const;
 
         // this function will perform illegal moves (or legal ones) if src contains a piece
-        void move_force( pieces::position_t const & src, pieces::position_t const & dst );
+        pieces::move_status move_force( pieces::position_t const & src, pieces::position_t const & dst );
         // this function checks for logic then moves if valid
         pieces::move_status move( pieces::position_t const & src, pieces::position_t const & dst );
 

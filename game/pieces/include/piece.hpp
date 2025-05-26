@@ -42,13 +42,41 @@ namespace chess::pieces {
 
     enum class move_status {
         valid,
-        piece_error,         // the piece doesnt move like that
-        board_state_error,   // the board state doesnt allow for that (ex piece in the way)
-        invalid_turn,        // not your turn
-        doesnt_leave_check,  // you were in check and did not avoid it
-        enters_check,        // this moves puts you in check
-        no_piece_to_move,    // there is no piece to move
+        piece_error,            // the piece doesnt move like that
+        board_state_error,      // the board state doesnt allow for that (ex piece in the way)
+        invalid_turn,           // not your turn
+        doesnt_leave_check,     // you were in check and did not avoid it
+        enters_check,           // this moves puts you in check
+        no_piece_to_move,       // there is no piece to move
+        no_space_to_move_from,  // no src space provided
+        illegal_move,           // this move was not provided by the possible moves list
     };
+
+    inline std::string to_string( move_status const & status )
+    {
+
+        switch ( status ) {
+
+        case move_status::valid:
+            return "VALID";
+        case move_status::piece_error:
+            return "PIECE DOES NOT MOVE LIKE THAT";
+        case move_status::board_state_error:
+            return "THE CURRENT BOARD STATE DOES NOT ALLOW FOR THIS MOVE";
+        case move_status::invalid_turn:
+            return "IT IS NOT YOUR TURN";
+        case move_status::doesnt_leave_check:
+            return "THIS MOVE FAILS TO LEAVE CHECK";
+        case move_status::enters_check:
+            return "THIS MOVE CAUSES YOU TO ENTER CHECK";
+        case move_status::no_piece_to_move:
+            return "THERE IS NO PIECE AT THIS SPACE TO MOVE";
+        case move_status::no_space_to_move_from:
+            return "YOU NEED TO SELECT A SPACE FIRST";
+        }
+
+        return "INVALID STATUS CODE";
+    }
 
     using position_t = std::pair< rank_t, file_t >;
 

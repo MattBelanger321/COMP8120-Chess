@@ -34,13 +34,18 @@ namespace chess {
             return pieces::move_status::no_piece_to_move;
         }
 
-        auto const & pos = possible_moves( src );
+        std::vector< game::space > pos;
+        auto                       status = possible_moves( src, pos );
 
-        if ( pos.empty() || std::find( pos.begin(), pos.end(), dst ) == pos.end() ) {
-            return pieces::move_status::invalid_turn;
+        if ( status != pieces::move_status::valid ) {
+            return status;
         }
 
-        auto status = game_board.move( src.position(), dst.position() );
+        if ( pos.empty() || std::find( pos.begin(), pos.end(), dst ) == pos.end() ) {
+            return pieces::move_status::illegal_move;
+        }
+
+        status = game_board.move( src.position(), dst.position() );
 
         if ( status != pieces::move_status::valid ) {
             return status;
@@ -64,21 +69,23 @@ namespace chess {
 
     std::string chess_game::to_string() const { return game_board.to_string(); }
 
-    move_status chess_game::possible_moves( game::space const & src, std::vector< game::space > & possible_moves ) const
+    pieces::move_status chess_game::possible_moves( game::space const &          src,
+                                                    std::vector< game::space > & possible_moves ) const
     {
-
         if ( src.piece->colour() ) {
             if ( !white_move() ) {  // if it is not whites move than we cannot move a white piece
-                return {};
+                return pieces::move_status::invalid_turn;
             }
         }
         else {
             if ( !black_move() ) {  // and vice versa
-                return {};
+                return pieces::move_status::invalid_turn;
             }
         }
 
         possible_moves = game_board.possible_moves( src );
+
+        return pieces::move_status::valid;
     }
 
 }  // namespace chess

@@ -32,7 +32,8 @@ namespace chess {
 
         std::string to_string() const;
 
-        std::vector< game::space > possible_moves( game::space const & src ) const;
+        pieces::move_status possible_moves( game::space const &          src,
+                                            std::vector< game::space > & possible_moves ) const;
 
         bool white_move() const;
         bool black_move() const;

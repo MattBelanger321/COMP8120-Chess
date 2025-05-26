@@ -35,32 +35,34 @@ namespace chess::game {
             place_pieces();
     }
 
-    void board::move_force( pieces::position_t const & src, pieces::position_t const & dst )
+    pieces::move_status board::move_force( pieces::position_t const & src, pieces::position_t const & dst )
     {
         if ( !game_board.at( src.first ).at( src.second ).piece )
-            return;
+            return pieces::move_status::no_piece_to_move;
 
-        game_board.at( dst.first )
-            .at( dst.second )
-            .piece.reset( game_board.at( src.first ).at( src.second ).piece.release() );
-    }
-
-    pieces::move_status board::move( pieces::position_t const & src, pieces::position_t const & dst )
-    {
-        auto status = game_board.at( dst.first ).at( dst.second ).piece->move( dst );
+        auto status = game_board.at( src.first ).at( src.second ).piece->move( dst );
 
         if ( status != pieces::move_status::valid ) {
             return status;
         }
 
+        game_board.at( dst.first )
+            .at( dst.second )
+            .piece.reset( game_board.at( src.first ).at( src.second ).piece.release() );
+
+        return pieces::move_status::valid;
+    }
+
+    pieces::move_status board::move( pieces::position_t const & src, pieces::position_t const & dst )
+    {
+
         auto const & moves = possible_moves( game_board.at( src.first ).at( src.second ) );
 
-        if ( std::find( moves.begin(), moves.end(), dst ) == moves.end() ) {
+        if ( std::find( moves.begin(), moves.end(), game_board.at( dst.first ).at( dst.second ) ) == moves.end() ) {
             return pieces::move_status::board_state_error;
         }
 
-        move_force( src, dst );
-        return pieces::move_status::valid;
+        return move_force( src, dst );
     }
 
     std::vector< space > board::possible_moves( space const & src ) const

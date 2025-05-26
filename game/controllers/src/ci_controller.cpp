@@ -64,9 +64,15 @@ namespace chess::controller {
                 continue;
             }
 
-            auto possible_moves = game.possible_moves( selected_space.value() );
+            std::vector< game::space > possible_moves;
+            auto                       status = game.possible_moves( selected_space.value(), possible_moves );
 
-            if ( possible_moves.empty() ) {
+            if ( status != pieces::move_status::valid ) {
+                std::cout << "\nThere Are No Possible Moves From This Space: " << pieces::to_string( status )
+                          << " Please Select Another Space\n";
+                continue;
+            }
+            else if ( possible_moves.empty() ) {
                 std::cout << "\nThere Are No Possible Moves From This Space, Please Select Another Space\n";
                 continue;
             }
@@ -119,13 +125,14 @@ namespace chess::controller {
             pieces::position_t mov_pos = { static_cast< pieces::rank_t >( rank ),
                                            static_cast< pieces::file_t >( file - ( 'A' - 1 ) ) };
 
-            if ( move( game.get( mov_pos ) ) ) {
+            status = move( game.get( mov_pos ) );
+            if ( status == pieces::move_status::valid ) {
                 std::cout << "\nYou Moved From Space: " << to_string( sel_pos ) << " To Space: " << to_string( mov_pos )
                           << "\n";
             }
             else {
                 std::cout << "\nSpace: " << to_string( sel_pos ) << " To Space: " << to_string( mov_pos )
-                          << " is an Invalid Move, Try Again\n";
+                          << " FAILED: " << to_string( status ) << ", Try Again\n";
             }
         }
     }

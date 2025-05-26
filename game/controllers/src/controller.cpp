@@ -1,3 +1,4 @@
+#include "piece.hpp"
 #include <controller.hpp>
 #include <mutex>
 
@@ -11,12 +12,15 @@ namespace chess::controller {
         selected_space = game.get( pos );
     }
 
-    bool controller::move( game::space const & dst )
+    pieces::move_status controller::move( game::space const & dst )
     {
-        bool ret = false;
+        auto ret = pieces::move_status::valid;
         if ( selected_space ) {
             std::lock_guard guard( game_mutex );
             ret = game.move( selected_space.value(), dst );
+        }
+        else {
+            ret = pieces::move_status::no_space_to_move_from;
         }
 
         selected_space.reset();

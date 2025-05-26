@@ -11,8 +11,8 @@
 namespace chess::controller {
     class controller {
     public:
-        void select_space( pieces::position_t const & pos );
-        bool move( game::space const & dst );
+        void                select_space( pieces::position_t const & pos );
+        pieces::move_status move( game::space const & dst );
 
         virtual ~controller() {}
 
