@@ -1,12 +1,28 @@
 #include "board.hpp"
+#include <algorithm>
 #include <game.hpp>
 #include <string>
 
 namespace chess {
 
-    void chess_game::move( game::space const & src, game::space const & dst )
+    chess_game::chess_game() { start(); }
+
+    void chess_game::start()
     {
+        state = game_state::white_move;
+        game_board.reset();
+    }
+
+    bool chess_game::move( game::space const & src, game::space const & dst )
+    {
+        auto const & pos = src.possible_moves();
+
+        if ( std::find( pos.begin(), pos.end(), dst ) == pos.end() ) {
+            return false;
+        }
+
         game_board.move( src.position(), dst.position() );
+        return true;
     }
 
     game::space const & chess_game::get( pieces::position_t const & pos ) const { return game_board.get( pos ); }

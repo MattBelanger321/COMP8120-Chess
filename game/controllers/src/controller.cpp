@@ -11,14 +11,16 @@ namespace chess::controller {
         selected_space = game.get( pos );
     }
 
-    void controller::move( game::space const & dst )
+    bool controller::move( game::space const & dst )
     {
+        bool ret = false;
         if ( selected_space ) {
             std::lock_guard guard( game_mutex );
-            game.move( selected_space.value(), dst );
+            ret = game.move( selected_space.value(), dst );
         }
 
         selected_space.reset();
+        return ret;
     }
 
 }  // namespace chess::controller

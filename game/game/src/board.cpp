@@ -15,8 +15,11 @@
 
 namespace chess::game {
 
-    board::board( bool const empty )
+    board::board( bool const empty ) { reset( empty ); }
+
+    void board::reset( bool const empty )
     {
+        game_board = {};
         for ( int i = 1; i <= 8; i++ ) {
             file_t file_map;
             auto   rank = static_cast< pieces::rank_t >( i );
@@ -40,6 +43,8 @@ namespace chess::game {
         game_board.at( dst.first )
             .at( dst.second )
             .piece.reset( game_board.at( src.first ).at( src.second ).piece.release() );
+
+        game_board.at( dst.first ).at( dst.second ).piece->move( dst );
     }
 
     std::vector< space > board::possible_moves( space const & src ) const
@@ -411,10 +416,10 @@ namespace chess::game {
                 }
                 else {
                     if ( current_space.colour() ) {
-                        serialized << "0|";
+                        serialized << "1|";
                     }
                     else {
-                        serialized << "1|";
+                        serialized << "0|";
                     }
                 }
             }

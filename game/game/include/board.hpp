@@ -41,6 +41,8 @@ namespace chess::game {
 
         // returns a reference to the space at the given position
         space const & get( pieces::position_t pos ) const;
+
+        void reset( bool const empty = false );
     };
 }  // namespace chess::game
 

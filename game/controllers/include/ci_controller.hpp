@@ -18,6 +18,8 @@ namespace chess::controller {
 
         void run();
         void close();
+
+        ~ci_controller();
     };
 }  // namespace chess::controller
 

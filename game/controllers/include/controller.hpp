@@ -10,7 +10,9 @@ namespace chess::controller {
     class controller {
     public:
         void select_space( pieces::position_t const & pos );
-        void move( game::space const & dst );
+        bool move( game::space const & dst );
+
+        virtual ~controller() {}
 
     protected:
         static std::mutex            game_mutex;
