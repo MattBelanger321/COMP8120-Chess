@@ -1,10 +1,10 @@
-#include "piece.hpp"
 #include <bishop.hpp>
 #include <board.hpp>
 #include <cstdlib>
 #include <king.hpp>
 #include <knight.hpp>
 #include <pawn.hpp>
+#include <piece.hpp>
 #include <queen.hpp>
 #include <rook.hpp>
 

@@ -6,6 +6,8 @@
 #include <piece.hpp>
 #include <space.hpp>
 
+#include <mutex>
+
 namespace chess::controller {
     class controller {
     public:
