@@ -1,6 +1,7 @@
 #ifndef __CHESS__GAME__
 #define __CHESS__GAME__
 
+#include "king.hpp"
 #include <board.hpp>
 #include <piece.hpp>
 #include <space.hpp>
@@ -18,6 +19,7 @@ namespace chess {
         white_resigns,
         black_resigns,
         draw,
+        invalid_game_state,
     };
 
     class chess_game {
@@ -48,6 +50,9 @@ namespace chess {
         bool king_side_castle_black;
         bool queen_side_castle_white;
         bool queen_side_castle_black;
+
+        std::reference_wrapper< pieces::king const > white_king;
+        std::reference_wrapper< pieces::king const > black_king;
     };
 }  // namespace chess
 

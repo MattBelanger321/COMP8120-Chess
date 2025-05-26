@@ -118,6 +118,10 @@ namespace chess::pieces {
         std::unique_ptr< piece >        copy_piece() const;
         static std::unique_ptr< piece > copy_piece( piece const & piece );
 
+        // this helper function takes in the index of a rank and file and returns a position_t of it
+        // returns the coordiantes that are theoretically reachable from this square
+        static std::optional< position_t > itopos( int const rank, int const file );
+
         virtual ~piece() {};
 
     protected:
@@ -126,10 +130,6 @@ namespace chess::pieces {
         rank_t rank;
         file_t file;
         bool   is_white;
-
-        // this helper function takes in the index of a rank and file and returns a position_t of it
-        // returns the coordiantes that are theoretically reachable from this square
-        static std::optional< position_t > itopos( int const rank, int const file );
     };
 }  // namespace chess::pieces
 

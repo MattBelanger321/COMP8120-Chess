@@ -13,18 +13,20 @@ namespace chess::controller {
 
             int rank = -1;
             do {
-                if ( should_close ) {
-                    return;
-                }
 
                 std::cout << "\nSelect a Rank (1-8): ";
                 std::cin >> rank;
+
+                if ( should_close ) {
+                    return;
+                }
 
                 if ( std::cin.eof() ) {
                     return;
                 }
 
                 if ( std::cin.fail() ) {
+
                     std::cin.clear();                                                        // Clear the error flag
                     std::cin.ignore( std::numeric_limits< std::streamsize >::max(), '\n' );  // Discard invalid input
                     std::cout << "\nInvalid input.\n";
@@ -33,11 +35,13 @@ namespace chess::controller {
 
             char file = '\0';
             do {
+
+                std::cout << "\nSelect a File (a-h): ";
+                std::cin >> file;
+
                 if ( should_close ) {
                     return;
                 }
-                std::cout << "\nSelect a File (a-h): ";
-                std::cin >> file;
 
                 if ( std::cin.fail() ) {
                     std::cin.clear();                                                        // Clear the error flag
@@ -75,12 +79,12 @@ namespace chess::controller {
 
             rank = -1;
             do {
+                std::cout << "\nSelect a Rank To Move To(1-8): ";
+                std::cin >> rank;
+
                 if ( should_close ) {
                     return;
                 }
-
-                std::cout << "\nSelect a Rank To Move To(1-8): ";
-                std::cin >> rank;
 
                 if ( std::cin.eof() ) {
                     return;
@@ -95,12 +99,13 @@ namespace chess::controller {
 
             file = '\0';
             do {
-                if ( should_close ) {
-                    return;
-                }
 
                 std::cout << "\nSelect a File To Move To(a-h): ";
                 std::cin >> file;
+
+                if ( should_close ) {
+                    return;
+                }
 
                 if ( std::cin.fail() ) {
                     std::cin.clear();                                                        // Clear the error flag

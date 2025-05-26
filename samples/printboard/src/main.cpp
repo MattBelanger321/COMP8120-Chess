@@ -26,9 +26,12 @@ void wait_until_exit()
 int main()
 {
     std::signal( SIGINT, signal_handle );
+    {
+        chess::controller::ci_controller cont;
+        cont.run();
 
-    chess::controller::ci_controller cont;
-    cont.run();
+        wait_until_exit();
+    }
 
-    wait_until_exit();
+    std::cout << "Goodbye\n";
 }
