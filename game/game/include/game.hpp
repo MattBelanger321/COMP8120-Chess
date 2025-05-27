@@ -59,6 +59,7 @@ namespace chess {
         bool queen_side_castle_white;
         bool queen_side_castle_black;
 
+        // read only references to the king so we can check for checks
         std::reference_wrapper< pieces::king const > white_king;
         std::reference_wrapper< pieces::king const > black_king;
     };
