@@ -8,7 +8,15 @@
 
 namespace chess {
 
-    chess_game::chess_game() : game_board() { start(); }
+    chess_game::chess_game() :
+        game_board(),
+        white_king( *reinterpret_cast< pieces::king * >(
+            game_board.get( pieces::piece::itopos( 1, 5 ).value() ).piece.get() ) ),
+        black_king(
+            *reinterpret_cast< pieces::king * >( game_board.get( pieces::piece::itopos( 8, 5 ).value() ).piece.get() ) )
+    {
+        start();
+    }
 
     void chess_game::start()
     {
