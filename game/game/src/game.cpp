@@ -84,10 +84,12 @@ namespace chess {
                 queen_side_castle_white = false;
             }
             else if ( moved_piece->type() == pieces::name_t::rook ) {
-                if ( src_pos == pieces::position_t( pieces::rank_t::one, pieces::file_t::a ) ) {
+                if ( queen_side_castle_white &&
+                     src_pos == pieces::position_t( pieces::rank_t::one, pieces::file_t::a ) ) {
                     queen_side_castle_white = false;
                 }
-                else if ( src_pos == pieces::position_t( pieces::rank_t::one, pieces::file_t::h ) ) {
+                else if ( king_side_castle_white &&
+                          src_pos == pieces::position_t( pieces::rank_t::one, pieces::file_t::h ) ) {
                     king_side_castle_white = false;
                 }
             }
@@ -104,10 +106,12 @@ namespace chess {
                 queen_side_castle_black = false;
             }
             else if ( moved_piece->type() == pieces::name_t::rook ) {
-                if ( src_pos == pieces::position_t( pieces::rank_t::eight, pieces::file_t::a ) ) {
+                if ( queen_side_castle_black &&
+                     src_pos == pieces::position_t( pieces::rank_t::eight, pieces::file_t::a ) ) {
                     queen_side_castle_black = false;
                 }
-                else if ( src_pos == pieces::position_t( pieces::rank_t::eight, pieces::file_t::h ) ) {
+                else if ( king_side_castle_black &&
+                          src_pos == pieces::position_t( pieces::rank_t::eight, pieces::file_t::h ) ) {
                     king_side_castle_black = false;
                 }
             }
