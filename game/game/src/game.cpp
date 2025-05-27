@@ -53,49 +53,57 @@ namespace chess {
 
         if ( white_move() ) {
             state = game_state::black_move;
-
-            // white castling logic
-            if ( king_side_castle_white || queen_side_castle_white ) {
-                if ( king_side_castle_white && queen_side_castle_white &&
-                     src_piece_cpy->type() == pieces::name_t::king ) {
-                    king_side_castle_white  = false;
-                    queen_side_castle_white = false;
-                }
-                else if ( src_piece_cpy->type() == pieces::name_t::rook ) {
-                    if ( src.position() == pieces::position_t( pieces::rank_t::one, pieces::file_t::a ) ) {
-                        queen_side_castle_white = false;
-                    }
-                    else if ( src.position() == pieces::position_t( pieces::rank_t::one, pieces::file_t::h ) ) {
-                        king_side_castle_white = false;
-                    }
-                }
-            }
+            white_castling_rights( src_piece_cpy, src.position() );
         }
         else if ( black_move() ) {
             state = game_state::white_move;
-
-            // black castling logic
-            if ( king_side_castle_black || queen_side_castle_black ) {
-                if ( king_side_castle_black && queen_side_castle_black &&
-                     src_piece_cpy->type() == pieces::name_t::king ) {
-                    king_side_castle_black  = false;
-                    queen_side_castle_black = false;
-                }
-                else if ( src_piece_cpy->type() == pieces::name_t::rook ) {
-                    if ( src.position() == pieces::position_t( pieces::rank_t::eight, pieces::file_t::a ) ) {
-                        queen_side_castle_black = false;
-                    }
-                    else if ( src.position() == pieces::position_t( pieces::rank_t::eight, pieces::file_t::h ) ) {
-                        king_side_castle_black = false;
-                    }
-                }
-            }
+            black_castling_rights( src_piece_cpy, src.position() );
         }
         else {
             throw std::logic_error( "Impossible Game State" );
         }
 
         return pieces::move_status::valid;
+    }
+
+    void chess_game::white_castling_rights( std::unique_ptr< pieces::piece > const & moved_piece,
+                                            pieces::position_t const &               src_pos )
+    {
+        // white castling logic
+        if ( king_side_castle_white || queen_side_castle_white ) {
+            if ( king_side_castle_white && queen_side_castle_white && moved_piece->type() == pieces::name_t::king ) {
+                king_side_castle_white  = false;
+                queen_side_castle_white = false;
+            }
+            else if ( moved_piece->type() == pieces::name_t::rook ) {
+                if ( src_pos == pieces::position_t( pieces::rank_t::one, pieces::file_t::a ) ) {
+                    queen_side_castle_white = false;
+                }
+                else if ( src_pos == pieces::position_t( pieces::rank_t::one, pieces::file_t::h ) ) {
+                    king_side_castle_white = false;
+                }
+            }
+        }
+    }
+
+    void chess_game::black_castling_rights( std::unique_ptr< pieces::piece > const & moved_piece,
+                                            pieces::position_t const &               src_pos )
+    {
+        // black castling logic
+        if ( king_side_castle_black || queen_side_castle_black ) {
+            if ( king_side_castle_black && queen_side_castle_black && moved_piece->type() == pieces::name_t::king ) {
+                king_side_castle_black  = false;
+                queen_side_castle_black = false;
+            }
+            else if ( moved_piece->type() == pieces::name_t::rook ) {
+                if ( src_pos == pieces::position_t( pieces::rank_t::eight, pieces::file_t::a ) ) {
+                    queen_side_castle_black = false;
+                }
+                else if ( src_pos == pieces::position_t( pieces::rank_t::eight, pieces::file_t::h ) ) {
+                    king_side_castle_black = false;
+                }
+            }
+        }
     }
 
     bool chess_game::white_move() const { return state == game_state::white_move || state == game_state::white_check; }

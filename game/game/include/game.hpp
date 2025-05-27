@@ -3,6 +3,7 @@
 
 #include "king.hpp"
 #include <board.hpp>
+#include <memory>
 #include <piece.hpp>
 #include <space.hpp>
 
@@ -45,6 +46,12 @@ namespace chess {
     private:
         game_state  state;
         game::board game_board;
+
+        // based on the moved piece thene functions update the castling status flags
+        void white_castling_rights( std::unique_ptr< pieces::piece > const & moved_piece,
+                                    pieces::position_t const &               src_pos );
+        void black_castling_rights( std::unique_ptr< pieces::piece > const & moved_piece,
+                                    pieces::position_t const &               src_pos );
 
         // set if the king or rook has not moved yet
         bool king_side_castle_white;
