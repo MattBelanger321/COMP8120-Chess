@@ -78,8 +78,8 @@ namespace chess {
                                             pieces::position_t const &               src_pos )
     {
         // white castling logic
-        if ( king_side_castle_white || queen_side_castle_white ) {
-            if ( king_side_castle_white && queen_side_castle_white && moved_piece->type() == pieces::name_t::king ) {
+        if ( ( king_side_castle_white || queen_side_castle_white ) && moved_piece->colour() ) {
+            if ( moved_piece->type() == pieces::name_t::king ) {
                 king_side_castle_white  = false;
                 queen_side_castle_white = false;
             }
@@ -100,8 +100,8 @@ namespace chess {
                                             pieces::position_t const &               src_pos )
     {
         // black castling logic
-        if ( king_side_castle_black || queen_side_castle_black ) {
-            if ( king_side_castle_black && queen_side_castle_black && moved_piece->type() == pieces::name_t::king ) {
+        if ( ( king_side_castle_black || queen_side_castle_black ) && !moved_piece->colour() ) {
+            if ( moved_piece->type() == pieces::name_t::king ) {
                 king_side_castle_black  = false;
                 queen_side_castle_black = false;
             }
