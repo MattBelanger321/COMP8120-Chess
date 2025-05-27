@@ -27,6 +27,7 @@ namespace chess::pieces {
 
     std::unique_ptr< piece > piece::copy_piece() const { return copy_piece( *this ); }
 
+    // deep copy a piece
     std::unique_ptr< piece > piece::copy_piece( piece const & src )
     {
         std::unique_ptr< piece > cpy;

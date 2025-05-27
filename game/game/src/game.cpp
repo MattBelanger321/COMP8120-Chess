@@ -1,26 +1,23 @@
-#include "king.hpp"
-#include "piece.hpp"
-#include <algorithm>
 #include <board.hpp>
 #include <game.hpp>
+#include <piece.hpp>
+#include <stdexcept>
 #include <string>
+
+#include <algorithm>
 
 namespace chess {
 
-    chess_game::chess_game() :
-        game_board(),
-        white_king( *reinterpret_cast< pieces::king * >(
-            game_board.get( pieces::piece::itopos( 1, 5 ).value() ).piece.get() ) ),
-        black_king(
-            *reinterpret_cast< pieces::king * >( game_board.get( pieces::piece::itopos( 8, 5 ).value() ).piece.get() ) )
-    {
-        start();
-    }
+    chess_game::chess_game() : game_board() { start(); }
 
     void chess_game::start()
     {
         state = game_state::white_move;
         game_board.reset();
+        king_side_castle_white  = true;
+        king_side_castle_black  = true;
+        queen_side_castle_white = true;
+        queen_side_castle_black = true;
 
         white_king =
             *reinterpret_cast< pieces::king * >( game_board.get( pieces::piece::itopos( 1, 5 ).value() ).piece.get() );
@@ -33,6 +30,9 @@ namespace chess {
         if ( !src.piece ) {
             return pieces::move_status::no_piece_to_move;
         }
+
+        // deep copy
+        auto src_piece_cpy = src.piece->copy_piece();
 
         std::vector< game::space > pos;
         auto                       status = possible_moves( src, pos );
@@ -53,9 +53,46 @@ namespace chess {
 
         if ( white_move() ) {
             state = game_state::black_move;
+
+            // white castling logic
+            if ( king_side_castle_white || queen_side_castle_white ) {
+                if ( king_side_castle_white && queen_side_castle_white &&
+                     src_piece_cpy->type() == pieces::name_t::king ) {
+                    king_side_castle_white  = false;
+                    queen_side_castle_white = false;
+                }
+                else if ( src_piece_cpy->type() == pieces::name_t::rook ) {
+                    if ( src.position() == pieces::position_t( pieces::rank_t::one, pieces::file_t::a ) ) {
+                        queen_side_castle_white = false;
+                    }
+                    else if ( src.position() == pieces::position_t( pieces::rank_t::one, pieces::file_t::h ) ) {
+                        king_side_castle_white = false;
+                    }
+                }
+            }
+        }
+        else if ( black_move() ) {
+            state = game_state::white_move;
+
+            // black castling logic
+            if ( king_side_castle_black || queen_side_castle_black ) {
+                if ( king_side_castle_black && queen_side_castle_black &&
+                     src_piece_cpy->type() == pieces::name_t::king ) {
+                    king_side_castle_black  = false;
+                    queen_side_castle_black = false;
+                }
+                else if ( src_piece_cpy->type() == pieces::name_t::rook ) {
+                    if ( src.position() == pieces::position_t( pieces::rank_t::eight, pieces::file_t::a ) ) {
+                        queen_side_castle_black = false;
+                    }
+                    else if ( src.position() == pieces::position_t( pieces::rank_t::eight, pieces::file_t::h ) ) {
+                        king_side_castle_black = false;
+                    }
+                }
+            }
         }
         else {
-            state = game_state::white_move;
+            throw std::logic_error( "Impossible Game State" );
         }
 
         return pieces::move_status::valid;
