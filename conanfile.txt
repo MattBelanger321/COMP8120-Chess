@@ -8,9 +8,6 @@ CMakeDeps
 CMakeToolchain
 cmake_find_package_multi
 
-[options]
-glew:shared=False
-
 [imports]
 ./res/bindings, imgui_impl_glfw.cpp -> ../imgui_bindings/src
 ./res/bindings, imgui_impl_opengl3.cpp -> ../imgui_initializer/imgui_bindings/src
