@@ -1,6 +1,8 @@
 # Prerequisites
 *.d
 
+venv/
+
 # Compiled Object files
 *.slo
 *.lo
@@ -34,3 +36,4 @@ game/.$game.drawio.bkp
 build/
 .cache
 output.txt
+*.pgn
