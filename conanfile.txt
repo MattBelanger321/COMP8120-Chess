@@ -1,0 +1,21 @@
+[requires]
+imgui/1.90.9
+glfw/3.4
+glew/2.2.0
+
+[generators]
+cmake_paths
+CMakeDeps
+CMakeToolchain
+cmake_find_package_multi
+
+[options]
+glew:shared=False
+
+[imports]
+./res/bindings, imgui_impl_glfw.cpp -> ../imgui_bindings/src
+./res/bindings, imgui_impl_opengl3.cpp -> ../imgui_bindings/src
+
+./res/bindings, imgui_impl_opengl3_loader.h -> ../imgui_bindings/include
+./res/bindings, imgui_impl_glfw.h -> ../imgui_bindings/include
+./res/bindings, imgui_impl_opengl3.h -> ../imgui_bindings/include

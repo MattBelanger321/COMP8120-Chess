@@ -37,3 +37,4 @@ build/
 .cache
 output.txt
 *.pgn
+imgui_bindings
