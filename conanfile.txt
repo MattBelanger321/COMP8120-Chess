@@ -13,9 +13,9 @@ cmake_find_package_multi
 glew:shared=False
 
 [imports]
-./res/bindings, imgui_impl_glfw.cpp -> ../imgui_bindings/src
-./res/bindings, imgui_impl_opengl3.cpp -> ../imgui_bindings/src
+./res/bindings, imgui_impl_glfw.cpp -> ../imgui_initializer/imgui_bindings/src
+./res/bindings, imgui_impl_opengl3.cpp -> ../imgui_initializer/imgui_bindings/src
 
-./res/bindings, imgui_impl_opengl3_loader.h -> ../imgui_bindings/include
-./res/bindings, imgui_impl_glfw.h -> ../imgui_bindings/include
-./res/bindings, imgui_impl_opengl3.h -> ../imgui_bindings/include
+./res/bindings, imgui_impl_opengl3_loader.h -> ../imgui_initializer/imgui_bindings/include
+./res/bindings, imgui_impl_glfw.h -> ../imgui_initializer/imgui_bindings/include
+./res/bindings, imgui_impl_opengl3.h -> ../imgui_initializer/imgui_bindings/include
