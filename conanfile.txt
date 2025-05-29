@@ -9,7 +9,7 @@ CMakeToolchain
 cmake_find_package_multi
 
 [imports]
-./res/bindings, imgui_impl_glfw.cpp -> ../imgui_bindings/src
+./res/bindings, imgui_impl_glfw.cpp -> ../imgui_initializer/imgui_bindings/src
 ./res/bindings, imgui_impl_opengl3.cpp -> ../imgui_initializer/imgui_bindings/src
 
 ./res/bindings, imgui_impl_opengl3_loader.h -> ../imgui_initializer/imgui_bindings/include
