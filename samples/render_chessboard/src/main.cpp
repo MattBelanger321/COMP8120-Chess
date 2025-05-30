@@ -2,11 +2,17 @@
 #include <imgui_initializer.hpp>
 #include <thread>
 
+#include <display.hpp>
+
 int main()
 {
     chess::display::imgui_initializer window( "DearIMGUI Sample" );
 
-    auto func = std::function< void() >( []() {} );
+    // chess::display
+
+    chess::controller::display controller( 1280, 720 );
+
+    auto func = std::function< void() >( [&controller]() { controller.render(); } );
 
     std::thread loopy( [&window, &func]() { window.run( func ); } );
 

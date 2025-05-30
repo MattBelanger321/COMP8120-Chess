@@ -1,6 +1,5 @@
 #include <board.hpp>
 #include <ci_controller.hpp>
-#include <controller.hpp>
 #include <csignal>
 #include <piece.hpp>
 #include <space.hpp>

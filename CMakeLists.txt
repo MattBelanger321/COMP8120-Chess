@@ -9,3 +9,4 @@ add_subdirectory(game)
 
 add_subdirectory(samples/printboard)
 add_subdirectory(samples/dearimgui)
+add_subdirectory(samples/render_chessboard)

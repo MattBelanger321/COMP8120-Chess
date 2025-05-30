@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 
 project(controllers LANGUAGES CXX)
 
+add_subdirectory("dearimgui_chessboard")
+
 add_library(${PROJECT_NAME}
 	include/ai_controller.hpp
 	include/controller.hpp
@@ -21,6 +23,7 @@ target_include_directories(${PROJECT_NAME}
 	PUBLIC
 	$<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/dearimgui_chessboard/include>
 
 	PRIVATE
 )
@@ -29,4 +32,8 @@ target_link_libraries(${PROJECT_NAME}
 	PUBLIC
 	game_lib
 	pieces
+	imgui_initializer
+
+	PRIVATE
+	dear_imgui_chessboard
 )

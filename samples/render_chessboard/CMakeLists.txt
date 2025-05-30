@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(print_board LANGUAGES CXX)
+project(render_chessboard LANGUAGES CXX)
 
 add_executable(${PROJECT_NAME}
 	"src/main.cpp"
@@ -18,10 +18,6 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	PUBLIC
-
-	pieces
-
-	PRIVATE
 	controllers
-	game_lib
+	imgui_initializer
 )
