@@ -1,8 +1,10 @@
-#include "space.hpp"
 #include <dear_imgui_chessboard.hpp>
+#include <filesystem>
+#include <space.hpp>
+#include <stdexcept>
+#include <texture_loader.hpp>
 
 #include <imgui.h>
-#include <iostream>
 
 namespace chess::controller {
 
@@ -10,6 +12,60 @@ namespace chess::controller {
                                         board_callback const game_board ) :
         width( width ), height( height ), game_board( game_board )
     {
+        const std::filesystem::path dir_path = "assets/img/pieces";
+
+        if ( !std::filesystem::exists( dir_path ) || !std::filesystem::is_directory( dir_path ) ) {
+            throw std::runtime_error( "ICONS DIRECTORY NOT FOUND" );
+        }
+
+        for ( const auto & entry : std::filesystem::directory_iterator( dir_path ) ) {
+            if ( entry.is_regular_file() ) {
+                const auto & path = entry.path();
+
+                gl_img_t img;
+                auto     icon = detect_icon( path );
+                if ( !texture_loader::load_from_file( path.string(), img.img, img.width, img.height ) ) {
+                    throw std::runtime_error( std::string( "Failed to process image: " ) + path.string() + "\n" );
+                }
+
+                icons[icon] = std::move( img );
+            }
+        }
+    }
+
+    icon_t imgui_chessboard::detect_icon( const std::filesystem::path & path ) const
+    {
+        const std::string filename = path.filename().string();
+
+        if ( filename.empty() )
+            throw std::runtime_error( "Invalid Filename Given" );
+
+        bool is_white = filename[0] == 'w';
+        bool is_black = filename[0] == 'b';
+
+        if ( !is_white && !is_black )
+            throw std::runtime_error( "Invalid Filename Given" );
+
+        if ( filename.find( "pawn" ) != std::string::npos ) {
+            return is_white ? icon_t::white_pawn : icon_t::black_pawn;
+        }
+        else if ( filename.find( "knight" ) != std::string::npos ) {
+            return is_white ? icon_t::white_knight : icon_t::black_knight;
+        }
+        else if ( filename.find( "bishop" ) != std::string::npos ) {
+            return is_white ? icon_t::white_bishop : icon_t::black_bishop;
+        }
+        else if ( filename.find( "rook" ) != std::string::npos ) {
+            return is_white ? icon_t::white_rook : icon_t::black_rook;
+        }
+        else if ( filename.find( "queen" ) != std::string::npos ) {
+            return is_white ? icon_t::white_queen : icon_t::black_queen;
+        }
+        else if ( filename.find( "king" ) != std::string::npos ) {
+            return is_white ? icon_t::white_king : icon_t::black_king;
+        }
+
+        throw std::runtime_error( "Invalid Filename Given" );
     }
 
     void imgui_chessboard::render()
@@ -26,9 +82,9 @@ namespace chess::controller {
                            false,  // border
                            ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
                                ImGuiWindowFlags_NoScrollWithMouse );
-        for ( int i = 1; i <= 8; i++ ) {
-            for ( int j = 1; j <= 8; j++ ) {
-                draw_square( game_board( i, j ) );
+        for ( int r = 1; r <= 8; r++ ) {
+            for ( int f = 1; f <= 8; f++ ) {
+                draw_square( game_board( r, f ) );
             }
         }
 
@@ -46,30 +102,74 @@ namespace chess::controller {
         float  square_size = width / 8.f;
 
         // select the colour of the square
-        ImU32 colour;
-        if ( sp.colour() ) {
-            colour = IM_COL32( 255, 255, 255, 255 );
-        }
-        else {
-            colour = IM_COL32( 0, 0, 0, 255 );
-        }
+        bool  is_light_square = sp.colour();
+        ImU32 colour          = is_light_square ? IM_COL32( 240, 217, 181, 255 ) :  // Light squares (cream/beige)
+                           IM_COL32( 181, 136, 99, 255 );                  // Dark squares (brown)
 
         // Define the square corners
-        ImVec2 top_left     = ImVec2( p.x + ( square_size * ( static_cast< int >( sp.position().first ) - 1 ) ),
-                                      p.y + ( square_size * ( static_cast< int >( sp.position().second ) - 1 ) ) );
+        ImVec2 top_left     = ImVec2( p.x + ( square_size * ( static_cast< int >( sp.position().second ) - 1 ) ),
+                                      p.y + ( square_size * ( 8 - static_cast< int >( sp.position().first ) ) ) );
         ImVec2 bottom_right = ImVec2( top_left.x + square_size, top_left.y + square_size );
 
         // Draw the square
         draw_list->AddRectFilled( top_left, bottom_right, colour, 0.0f, ImDrawFlags_Closed );
 
-        // if ( sp.piece ) {
-        //     // Optional padding inside the square
-        //     float  padding            = square_size * 0.1f;
-        //     ImVec2 image_top_left     = ImVec2( top_left.x + padding, top_left.y + padding );
-        //     ImVec2 image_bottom_right = ImVec2( bottom_right.x - padding, bottom_right.y - padding );
+        if ( !sp.piece ) {
+            return;
+        }
+        icon_t icon;
 
-        //     draw_list->AddImage( nullptr, image_top_left, image_bottom_right );
-        // }
+        if ( sp.piece->colour() ) {  // Assuming true = white
+            switch ( sp.piece->type() ) {
+            case pieces::name_t::rook:
+                icon = icon_t::white_rook;
+                break;
+            case pieces::name_t::knight:
+                icon = icon_t::white_knight;
+                break;
+            case pieces::name_t::bishop:
+                icon = icon_t::white_bishop;
+                break;
+            case pieces::name_t::king:
+                icon = icon_t::white_king;
+                break;
+            case pieces::name_t::queen:
+                icon = icon_t::white_queen;
+                break;
+            case pieces::name_t::pawn:
+                icon = icon_t::white_pawn;
+                break;
+            }
+        }
+        else {  // Black
+            switch ( sp.piece->type() ) {
+            case pieces::name_t::rook:
+                icon = icon_t::black_rook;
+                break;
+            case pieces::name_t::knight:
+                icon = icon_t::black_knight;
+                break;
+            case pieces::name_t::bishop:
+                icon = icon_t::black_bishop;
+                break;
+            case pieces::name_t::king:
+                icon = icon_t::black_king;
+                break;
+            case pieces::name_t::queen:
+                icon = icon_t::black_queen;
+                break;
+            case pieces::name_t::pawn:
+                icon = icon_t::black_pawn;
+                break;
+            }
+        }
+
+        float  padding            = square_size * 0.1f;
+        ImVec2 image_top_left     = ImVec2( top_left.x + padding, top_left.y + padding );
+        ImVec2 image_bottom_right = ImVec2( bottom_right.x - padding, bottom_right.y - padding );
+
+        ImTextureID img = (ImTextureID)(uintptr_t)icons.at( icon ).img;
+        draw_list->AddImage( img, image_top_left, image_bottom_right );
     }
 
 }  // namespace chess::controller

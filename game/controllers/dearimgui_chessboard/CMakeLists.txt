@@ -22,3 +22,7 @@ target_link_libraries(${PROJECT_NAME}
 	imgui_initializer
 	game_lib
 )
+
+# Copy assets/img/pieces to binary dir at configure time
+file(COPY "${CMAKE_SOURCE_DIR}/assets/img/pieces"
+	DESTINATION "${CMAKE_BINARY_DIR}/assets/img")

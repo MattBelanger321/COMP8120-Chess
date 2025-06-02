@@ -1,4 +1,6 @@
 #include <imgui_initializer.hpp>
+#include <string>
+#include <texture_loader.hpp>
 
 #include <iostream>
 #include <stdexcept>
@@ -36,6 +38,11 @@ namespace chess::display {
 
             glfwMakeContextCurrent( window );
             glfwSwapInterval( vsync_enabled ? 1 : 0 );
+
+            if ( !gladLoadGLLoader( (GLADloadproc)glfwGetProcAddress ) ) {
+                std::cout << "Failed to initialize GLAD" << std::endl;
+                return -1;
+            }
 
             // Set up window resize callback
             glfwSetWindowUserPointer( window, this );
@@ -125,6 +132,12 @@ namespace chess::display {
 
                 // Rendering
                 ImGui::Render();
+
+                GLenum error = glGetError();
+                if ( error != GL_NO_ERROR ) {
+                    std::cout << "OpenGL Error: " << error << std::endl;
+                }
+
                 int display_w, display_h;
                 glfwGetFramebufferSize( window, &display_w, &display_h );
                 glViewport( 0, 0, display_w, display_h );
