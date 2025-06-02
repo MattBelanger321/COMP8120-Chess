@@ -17,7 +17,7 @@ namespace chess::controller {
 
     void imgui_chessboard::init()
     {
-        const std::filesystem::path dir_path = "assets/img/pieces";
+        const std::filesystem::path dir_path = "/home/matthew/GradSchool/COMP8120-Chess/assets/img/pieces";
 
         if ( !std::filesystem::exists( dir_path ) || !std::filesystem::is_directory( dir_path ) ) {
             throw std::runtime_error( "ICONS DIRECTORY NOT FOUND" );
@@ -131,6 +131,17 @@ namespace chess::controller {
 
         // Draw the square
         draw_list->AddRectFilled( top_left, bottom_right, colour, 0.0f, ImDrawFlags_Closed );
+
+        if ( !sp.sp.piece && sp.possible ) {
+            // Compute square center
+            ImVec2 center = ImVec2( ( top_left.x + bottom_right.x ) * 0.5f, ( top_left.y + bottom_right.y ) * 0.5f );
+
+            // Radius as a fraction of square size (adjust as needed)
+            float radius = square_size * 0.1f;  // 10% of square size
+
+            // Draw the filled circle (e.g., blue)
+            draw_list->AddCircleFilled( center, radius, IM_COL32( 0, 0, 255, 180 ) );
+        }
 
         // Add clickable area
         ImGui::PushID( i * 8 + j );  // Unique ID per square

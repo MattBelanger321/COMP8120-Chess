@@ -129,6 +129,10 @@ namespace chess {
     pieces::move_status chess_game::possible_moves( game::space const &          src,
                                                     std::vector< game::space > & possible_moves ) const
     {
+        if ( !src.piece ) {
+            return pieces::move_status::no_piece_to_move;
+        }
+
         if ( src.piece->colour() ) {
             if ( !white_move() ) {  // if it is not whites move than we cannot move a white piece
                 return pieces::move_status::invalid_turn;
