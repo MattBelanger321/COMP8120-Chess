@@ -12,6 +12,10 @@ namespace chess::controller {
                                         board_callback const game_board ) :
         width( width ), height( height ), game_board( game_board )
     {
+    }
+
+    void imgui_chessboard::init()
+    {
         const std::filesystem::path dir_path = "assets/img/pieces";
 
         if ( !std::filesystem::exists( dir_path ) || !std::filesystem::is_directory( dir_path ) ) {
@@ -77,7 +81,12 @@ namespace chess::controller {
     }
 
     void imgui_chessboard::draw_board()
-    {  // Use a unique ID for the child panel
+    {
+        if ( icons.empty() ) {
+            init();
+        }
+
+        // Use a unique ID for the child panel
         ImGui::BeginChild( "ChessboardPanel", ImVec2( static_cast< float >( width ), static_cast< float >( width ) ),
                            false,  // border
                            ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |

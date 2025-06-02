@@ -50,6 +50,8 @@ namespace chess::controller {
         void draw_square( game::space const & sp );
 
         icon_t detect_icon( const std::filesystem::path & path ) const;
+
+        void init();
     };
 }  // namespace chess::controller
 
