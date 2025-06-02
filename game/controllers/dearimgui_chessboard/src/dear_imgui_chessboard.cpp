@@ -1,3 +1,4 @@
+#include "space.hpp"
 #include <dear_imgui_chessboard.hpp>
 
 #include <imgui.h>
@@ -5,7 +6,11 @@
 
 namespace chess::controller {
 
-    imgui_chessboard::imgui_chessboard( unsigned int width, unsigned int height ) : width( width ), height( height ) {}
+    imgui_chessboard::imgui_chessboard( unsigned int const width, unsigned int const height,
+                                        board_callback const game_board ) :
+        width( width ), height( height ), game_board( game_board )
+    {
+    }
 
     void imgui_chessboard::render()
     {
@@ -21,16 +26,16 @@ namespace chess::controller {
                            false,  // border
                            ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
                                ImGuiWindowFlags_NoScrollWithMouse );
-        for ( int i = 0; i < 8; i++ ) {
-            for ( int j = 0; j < 8; j++ ) {
-                draw_square( i, j );
+        for ( int i = 1; i <= 8; i++ ) {
+            for ( int j = 1; j <= 8; j++ ) {
+                draw_square( game_board( i, j ) );
             }
         }
 
         ImGui::EndChild();
     }
 
-    void imgui_chessboard::draw_square( int const i, int const j )
+    void imgui_chessboard::draw_square( game::space const & sp )
     {
 
         // Get the draw list for the current window
@@ -42,7 +47,7 @@ namespace chess::controller {
 
         // select the colour of the square
         ImU32 colour;
-        if ( ( i + j ) % 2 == 1 ) {
+        if ( sp.colour() ) {
             colour = IM_COL32( 255, 255, 255, 255 );
         }
         else {
@@ -50,11 +55,21 @@ namespace chess::controller {
         }
 
         // Define the square corners
-        ImVec2 top_left     = ImVec2( p.x + ( square_size * i ), p.y + ( square_size * j ) );
+        ImVec2 top_left     = ImVec2( p.x + ( square_size * ( static_cast< int >( sp.position().first ) - 1 ) ),
+                                      p.y + ( square_size * ( static_cast< int >( sp.position().second ) - 1 ) ) );
         ImVec2 bottom_right = ImVec2( top_left.x + square_size, top_left.y + square_size );
 
         // Draw the square
         draw_list->AddRectFilled( top_left, bottom_right, colour, 0.0f, ImDrawFlags_Closed );
+
+        // if ( sp.piece ) {
+        //     // Optional padding inside the square
+        //     float  padding            = square_size * 0.1f;
+        //     ImVec2 image_top_left     = ImVec2( top_left.x + padding, top_left.y + padding );
+        //     ImVec2 image_bottom_right = ImVec2( bottom_right.x - padding, bottom_right.y - padding );
+
+        //     draw_list->AddImage( nullptr, image_top_left, image_bottom_right );
+        // }
     }
 
 }  // namespace chess::controller
