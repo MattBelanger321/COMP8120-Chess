@@ -10,7 +10,7 @@ int main()
 
     // chess::display
 
-    chess::controller::display controller( 1280, 720 );
+    chess::controller::display controller( 720, 900 );
 
     auto func = std::function< void() >( [&controller]() { controller.render(); } );
 

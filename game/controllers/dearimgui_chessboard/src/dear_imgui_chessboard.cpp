@@ -8,24 +8,54 @@ namespace chess::controller {
 
     void imgui_chessboard::render()
     {
-        // Use a unique ID for the child panel
-        ImGui::BeginChild( "ChessboardPanel", ImVec2( static_cast< float >( width ), static_cast< float >( height ) ),
+        ImGui::Begin( "Chess Game", nullptr,
+                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse );
+        draw_board();
+        ImGui::End();
+    }
+
+    void imgui_chessboard::draw_board()
+    {  // Use a unique ID for the child panel
+        ImGui::BeginChild( "ChessboardPanel", ImVec2( static_cast< float >( width ), static_cast< float >( width ) ),
                            true,  // border
                            ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
                                ImGuiWindowFlags_NoScrollWithMouse );
-
-        // Center the button in the child panel
-        float panel_center_x =
-            ImGui::GetCursorPosX() +
-            ( width - ImGui::CalcTextSize( "That was easy" ).x - ImGui::GetStyle().FramePadding.x * 2 ) / 2;
-        ImGui::SetCursorPosX( panel_center_x );
-
-        // Render the button
-        if ( ImGui::Button( "That was easy" ) ) {
-            std::cout << "THAT WAS EASY\n";
+        for ( int i = 0; i < 8; i++ ) {
+            for ( int j = 0; j < 8; j++ ) {
+                draw_square( i, j );
+            }
         }
 
         ImGui::EndChild();
+    }
+
+    void imgui_chessboard::draw_square( int const i, int const j )
+    {
+
+        // Get the draw list for the current window
+        ImDrawList * draw_list = ImGui::GetWindowDrawList();
+
+        // Choose a starting point (top-left corner of the square)
+        ImVec2 p           = ImGui::GetWindowPos();
+        float  square_size = width / 8.f;
+
+        // select the colour of the square
+        ImU32 colour;
+        if ( ( i + j ) % 2 == 1 ) {
+            colour = IM_COL32( 255, 255, 255, 255 );
+        }
+        else {
+            colour = IM_COL32( 0, 0, 0, 255 );
+        }
+
+        float thickness = width / 8.f;
+
+        // Define the square corners
+        ImVec2 top_left     = ImVec2( p.x + ( square_size * i ), p.y + ( square_size * j ) );
+        ImVec2 bottom_right = ImVec2( top_left.x + square_size, top_left.y + square_size );
+
+        // Draw the square
+        draw_list->AddRect( top_left, bottom_right, colour, 0.0f, ImDrawFlags_Closed, thickness );
     }
 
 }  // namespace chess::controller

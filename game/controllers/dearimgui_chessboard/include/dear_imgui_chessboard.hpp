@@ -13,6 +13,9 @@ namespace chess::controller {
     private:
         unsigned int width;
         unsigned int height;
+
+        void draw_board();
+        void draw_square( int const i, int const j );
     };
 }  // namespace chess::controller
 
