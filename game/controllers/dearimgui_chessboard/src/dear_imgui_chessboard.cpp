@@ -1,5 +1,6 @@
 #include <dear_imgui_chessboard.hpp>
 #include <filesystem>
+#include <iostream>
 #include <space.hpp>
 #include <stdexcept>
 #include <texture_loader.hpp>
@@ -9,8 +10,8 @@
 namespace chess::controller {
 
     imgui_chessboard::imgui_chessboard( unsigned int const width, unsigned int const height,
-                                        board_callback const game_board ) :
-        width( width ), height( height ), game_board( game_board )
+                                        board_callback const game_board, selection_callback const select ) :
+        width( width ), height( height ), game_board( game_board ), select( select )
     {
     }
 
@@ -100,8 +101,10 @@ namespace chess::controller {
         ImGui::EndChild();
     }
 
-    void imgui_chessboard::draw_square( game::space const & sp )
+    void imgui_chessboard::draw_square( space_context_t const & sp )
     {
+        int i = static_cast< int >( sp.sp.position().second ) - 1;
+        int j = 8 - static_cast< int >( sp.sp.position().first );
 
         // Get the draw list for the current window
         ImDrawList * draw_list = ImGui::GetWindowDrawList();
@@ -110,26 +113,42 @@ namespace chess::controller {
         ImVec2 p           = ImGui::GetCursorScreenPos();
         float  square_size = width / 8.f;
 
-        // select the colour of the square
-        bool  is_light_square = sp.colour();
-        ImU32 colour          = is_light_square ? IM_COL32( 240, 217, 181, 255 ) :  // Light squares (cream/beige)
-                           IM_COL32( 181, 136, 99, 255 );                  // Dark squares (brown)
+        ImU32 colour;
+
+        if ( sp.sp.piece && sp.possible ) {
+            colour = IM_COL32( 255, 0, 0, 255 );
+        }
+        else {
+            // select the colour of the square
+            bool is_light_square = sp.sp.colour();
+            colour               = is_light_square ? IM_COL32( 240, 217, 181, 255 ) :  // Light squares (cream/beige)
+                         IM_COL32( 181, 136, 99, 255 );                  // Dark squares (brown)
+        }
 
         // Define the square corners
-        ImVec2 top_left     = ImVec2( p.x + ( square_size * ( static_cast< int >( sp.position().second ) - 1 ) ),
-                                      p.y + ( square_size * ( 8 - static_cast< int >( sp.position().first ) ) ) );
+        ImVec2 top_left     = ImVec2( p.x + ( square_size * i ), p.y + ( square_size * j ) );
         ImVec2 bottom_right = ImVec2( top_left.x + square_size, top_left.y + square_size );
 
         // Draw the square
         draw_list->AddRectFilled( top_left, bottom_right, colour, 0.0f, ImDrawFlags_Closed );
 
-        if ( !sp.piece ) {
+        // Add clickable area
+        ImGui::PushID( i * 8 + j );  // Unique ID per square
+        ImVec2 cursor_backup = ImGui::GetCursorScreenPos();
+        ImGui::SetCursorScreenPos( top_left );
+        if ( ImGui::InvisibleButton( "square", ImVec2( square_size, square_size ) ) ) {
+            select( sp.sp );
+        }
+        ImGui::SetCursorScreenPos( cursor_backup );
+        ImGui::PopID();
+
+        if ( !sp.sp.piece ) {
             return;
         }
         icon_t icon;
 
-        if ( sp.piece->colour() ) {  // Assuming true = white
-            switch ( sp.piece->type() ) {
+        if ( sp.sp.piece->colour() ) {  // Assuming true = white
+            switch ( sp.sp.piece->type() ) {
             case pieces::name_t::rook:
                 icon = icon_t::white_rook;
                 break;
@@ -151,7 +170,7 @@ namespace chess::controller {
             }
         }
         else {  // Black
-            switch ( sp.piece->type() ) {
+            switch ( sp.sp.piece->type() ) {
             case pieces::name_t::rook:
                 icon = icon_t::black_rook;
                 break;

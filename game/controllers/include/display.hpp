@@ -22,9 +22,12 @@ namespace chess::controller {
         unsigned int   height;
         board_callback get_space;
 
+        std::vector< game::space > possible_moves;
+
         imgui_chessboard board;
 
-        game::space const & get( int const i, int const j );
+        space_context_t const get( int const i, int const j );
+        void                  on_select( game::space const & sp );
     };
 }  // namespace chess::controller
 

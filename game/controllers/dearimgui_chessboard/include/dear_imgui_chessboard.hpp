@@ -9,12 +9,16 @@
 #include <unordered_map>
 
 namespace chess::controller {
-    using board_callback = std::function< game::space const &( int const i, int const j ) >;
 
     struct gl_img_t {
         int    width;
         int    height;
         GLuint img;
+    };
+
+    struct space_context_t {
+        game::space const & sp;
+        bool                possible;  // set if a piece is selected AND that piece can move to this space
     };
 
     enum class icon_t {
@@ -33,21 +37,27 @@ namespace chess::controller {
         black_pawn
     };
 
+    using board_callback     = std::function< space_context_t const( int const i, int const j ) >;
+    using selection_callback = std::function< void( game::space const & ) >;
+
     class imgui_chessboard {
     public:
-        imgui_chessboard( unsigned int const width, unsigned int const height, board_callback const game_board );
+        imgui_chessboard( unsigned int const width, unsigned int const height, board_callback const game_board,
+                          selection_callback const select );
 
         void render();
 
     private:
-        unsigned int         width;
-        unsigned int         height;
-        board_callback const game_board;
+        unsigned int width;
+        unsigned int height;
+
+        board_callback const     game_board;
+        selection_callback const select;
 
         std::unordered_map< icon_t, gl_img_t > icons;
 
         void draw_board();
-        void draw_square( game::space const & sp );
+        void draw_square( space_context_t const & sp );
 
         icon_t detect_icon( const std::filesystem::path & path ) const;
 
