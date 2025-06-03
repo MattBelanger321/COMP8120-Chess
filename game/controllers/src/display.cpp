@@ -43,7 +43,12 @@ namespace chess::controller {
         if ( !possible_moves.empty() ) {
             if ( selected_space &&
                  std::find( possible_moves.begin(), possible_moves.end(), sp ) != possible_moves.end() ) {
-                move( sp );
+                auto status = move( sp );
+
+                if ( status != pieces::move_status::valid ) {
+                    std::cout << "\nMove To Space: " << to_string( sp.position() ) << " FAILED: " << to_string( status )
+                              << ", Try Again\n";
+                }
             }
             possible_moves = {};
             return;

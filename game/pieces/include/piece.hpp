@@ -42,21 +42,24 @@ namespace chess::pieces {
 
     enum class move_status {
         valid,
-        piece_error,            // the piece doesnt move like that
-        board_state_error,      // the board state doesnt allow for that (ex piece in the way)
-        invalid_turn,           // not your turn
-        doesnt_leave_check,     // you were in check and did not avoid it
-        enters_check,           // this moves puts you in check
-        no_piece_to_move,       // there is no piece to move
-        no_space_to_move_from,  // no src space provided
-        illegal_move,           // this move was not provided by the possible moves list
+        piece_error,              // the piece doesnt move like that
+        board_state_error,        // the board state doesnt allow for that (ex piece in the way)
+        invalid_turn,             // not your turn
+        doesnt_leave_check,       // you were in check and did not avoid it
+        enters_check,             // this moves puts you in check
+        no_piece_to_move,         // there is no piece to move
+        no_space_to_move_from,    // no src space provided
+        illegal_move,             // this move was not provided by the possible moves list
+        king_side_castle_white,   // the move was a castle
+        king_side_castle_black,   // the move was a castle
+        queen_side_castle_white,  // the move was a castle
+        queen_side_castle_black,  // the move was a castle
     };
 
     inline std::string to_string( move_status const & status )
     {
 
         switch ( status ) {
-
         case move_status::valid:
             return "VALID";
         case move_status::piece_error:
@@ -75,9 +78,25 @@ namespace chess::pieces {
             return "YOU NEED TO SELECT A SPACE FIRST";
         case move_status::illegal_move:
             return "ILLEGAL MOVE";
+        case move_status::king_side_castle_white:
+            return "WHITE KING-SIDE CASTLE";
+        case move_status::king_side_castle_black:
+            return "BLACK KING-SIDE CASTLE";
+        case move_status::queen_side_castle_white:
+            return "WHITE QUEEN-SIDE CASTLE";
+        case move_status::queen_side_castle_black:
+            return "BLACK QUEEN-SIDE CASTLE";
         }
 
         return "INVALID STATUS CODE";
+    }
+
+    inline bool is_success_status( pieces::move_status status )
+    {
+        return status == pieces::move_status::valid || status == pieces::move_status::king_side_castle_white ||
+               status == pieces::move_status::king_side_castle_black ||
+               status == pieces::move_status::queen_side_castle_white ||
+               status == pieces::move_status::queen_side_castle_black;
     }
 
     using position_t = std::pair< rank_t, file_t >;

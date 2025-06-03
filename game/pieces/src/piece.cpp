@@ -70,6 +70,28 @@ namespace chess::pieces {
         auto const & moves = possible_moves();
 
         if ( std::find( moves.begin(), moves.end(), pos ) == moves.end() ) {
+            if ( type() == name_t::king ) {
+                if ( colour() ) {
+                    if ( pos == position_t( rank_t::one, file_t::g ) ) {
+                        place( pos );
+                        return move_status::king_side_castle_white;
+                    }
+                    else if ( pos == position_t( rank_t::one, file_t::c ) ) {
+                        place( pos );
+                        return move_status::queen_side_castle_white;
+                    }
+                }
+                else {
+                    if ( pos == position_t( rank_t::eight, file_t::g ) ) {
+                        place( pos );
+                        return move_status::king_side_castle_black;
+                    }
+                    else if ( pos == position_t( rank_t::eight, file_t::c ) ) {
+                        place( pos );
+                        return move_status::queen_side_castle_black;
+                    }
+                }
+            }
             return move_status::piece_error;
         }
 

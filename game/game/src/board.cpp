@@ -42,7 +42,7 @@ namespace chess::game {
 
         auto status = game_board.at( src.first ).at( src.second ).piece->move( dst );
 
-        if ( status != pieces::move_status::valid ) {
+        if ( !is_success_status( status ) ) {
             return status;
         }
 
@@ -50,18 +50,40 @@ namespace chess::game {
             .at( dst.second )
             .piece.reset( game_board.at( src.first ).at( src.second ).piece.release() );
 
+        // move the rook for castle
+        if ( status == pieces::move_status::king_side_castle_white ) {
+            auto & from = game_board.at( pieces::rank_t::one ).at( pieces::file_t::h ).piece;
+            if ( from ) {
+                from->place( { pieces::rank_t::one, pieces::file_t::f } );
+            }
+            game_board.at( pieces::rank_t::one ).at( pieces::file_t::f ).piece.reset( from.release() );
+        }
+        else if ( status == pieces::move_status::king_side_castle_black ) {
+            auto & from = game_board.at( pieces::rank_t::eight ).at( pieces::file_t::h ).piece;
+            if ( from ) {
+                from->place( { pieces::rank_t::eight, pieces::file_t::f } );
+            }
+            game_board.at( pieces::rank_t::eight ).at( pieces::file_t::f ).piece.reset( from.release() );
+        }
+        else if ( status == pieces::move_status::queen_side_castle_white ) {
+            auto & from = game_board.at( pieces::rank_t::one ).at( pieces::file_t::a ).piece;
+            if ( from ) {
+                from->place( { pieces::rank_t::one, pieces::file_t::d } );
+            }
+            game_board.at( pieces::rank_t::one ).at( pieces::file_t::d ).piece.reset( from.release() );
+        }
+        else if ( status == pieces::move_status::queen_side_castle_black ) {
+            auto & from = game_board.at( pieces::rank_t::eight ).at( pieces::file_t::a ).piece;
+            if ( from ) {
+                from->place( { pieces::rank_t::eight, pieces::file_t::d } );
+            }
+            game_board.at( pieces::rank_t::eight ).at( pieces::file_t::d ).piece.reset( from.release() );
+        }
         return pieces::move_status::valid;
     }
 
     pieces::move_status board::move( pieces::position_t const & src, pieces::position_t const & dst )
     {
-
-        auto const & moves = possible_moves( game_board.at( src.first ).at( src.second ) );
-
-        if ( std::find( moves.begin(), moves.end(), game_board.at( dst.first ).at( dst.second ) ) == moves.end() ) {
-            return pieces::move_status::board_state_error;
-        }
-
         return move_force( src, dst );
     }
 
