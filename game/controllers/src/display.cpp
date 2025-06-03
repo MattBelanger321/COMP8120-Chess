@@ -43,7 +43,7 @@ namespace chess::controller {
         if ( !possible_moves.empty() ) {
             if ( selected_space &&
                  std::find( possible_moves.begin(), possible_moves.end(), sp ) != possible_moves.end() ) {
-                game.move( *selected_space, sp );
+                move( sp );
             }
             possible_moves = {};
             return;
@@ -58,7 +58,7 @@ namespace chess::controller {
             return;
         }
 
-        selected_space = sp;
+        select_space( sp.position() );
 
         std::cout << "Possible Moves: ";
         for ( auto & sp : possible_moves ) {
