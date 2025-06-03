@@ -41,12 +41,24 @@ namespace chess::controller {
         std::cout << "Selected a Space: " << to_string( sp.position() ) << "\n";
 
         if ( !possible_moves.empty() ) {
+            if ( selected_space &&
+                 std::find( possible_moves.begin(), possible_moves.end(), sp ) != possible_moves.end() ) {
+                game.move( *selected_space, sp );
+            }
             possible_moves = {};
+            return;
         }
 
+        // game.possible_moves populates vector
         if ( pieces::move_status::valid != game.possible_moves( sp, possible_moves ) ) {
             possible_moves = {};
         }
+
+        if ( possible_moves.empty() ) {
+            return;
+        }
+
+        selected_space = sp;
 
         std::cout << "Possible Moves: ";
         for ( auto & sp : possible_moves ) {
