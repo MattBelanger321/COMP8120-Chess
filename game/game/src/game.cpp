@@ -168,7 +168,7 @@ namespace chess {
                 if ( king_side_castle_black ) {
                     if ( !game_board.get( { pieces::rank_t::eight, pieces::file_t::f } ).piece &&
                          !game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ).piece ) {
-                        possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::g } ) );
+                        possible_moves.push_back( game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ) );
                     }
                 }
 
@@ -176,7 +176,7 @@ namespace chess {
                     if ( !game_board.get( { pieces::rank_t::eight, pieces::file_t::b } ).piece &&
                          !game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ).piece &&
                          !game_board.get( { pieces::rank_t::eight, pieces::file_t::d } ).piece ) {
-                        possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::g } ) );
+                        possible_moves.push_back( game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ) );
                     }
                 }
             }
