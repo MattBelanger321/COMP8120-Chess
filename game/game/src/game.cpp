@@ -146,6 +146,42 @@ namespace chess {
 
         possible_moves = game_board.possible_moves( src );
 
+        // if applicable add castling logic
+        if ( src.piece->type() == pieces::name_t::king ) {
+            if ( src.piece->colour() ) {
+                if ( king_side_castle_white ) {
+                    if ( !game_board.get( { pieces::rank_t::one, pieces::file_t::f } ).piece &&
+                         !game_board.get( { pieces::rank_t::one, pieces::file_t::g } ).piece ) {
+                        possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::g } ) );
+                    }
+                }
+
+                if ( queen_side_castle_white ) {
+                    if ( !game_board.get( { pieces::rank_t::one, pieces::file_t::b } ).piece &&
+                         !game_board.get( { pieces::rank_t::one, pieces::file_t::c } ).piece &&
+                         !game_board.get( { pieces::rank_t::one, pieces::file_t::d } ).piece ) {
+                        possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::g } ) );
+                    }
+                }
+            }
+            else {
+                if ( king_side_castle_black ) {
+                    if ( !game_board.get( { pieces::rank_t::eight, pieces::file_t::f } ).piece &&
+                         !game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ).piece ) {
+                        possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::g } ) );
+                    }
+                }
+
+                if ( queen_side_castle_black ) {
+                    if ( !game_board.get( { pieces::rank_t::eight, pieces::file_t::b } ).piece &&
+                         !game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ).piece &&
+                         !game_board.get( { pieces::rank_t::eight, pieces::file_t::d } ).piece ) {
+                        possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::g } ) );
+                    }
+                }
+            }
+        }
+
         return pieces::move_status::valid;
     }
 
