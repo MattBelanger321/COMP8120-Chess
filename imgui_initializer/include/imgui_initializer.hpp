@@ -40,8 +40,8 @@ namespace chess::display {
         std::string window_name;
         bool        initialized    = false;
         bool        vsync_enabled  = true;
-        int         window_width   = 1280;
-        int         window_height  = 720;
+        int         window_width   = 750;
+        int         window_height  = 750;
         float       clear_color[4] = { 0.45f, 0.55f, 0.60f, 1.00f };
 
         void main_loop( std::function< void() > render_function );
