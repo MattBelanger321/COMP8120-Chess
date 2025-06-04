@@ -228,6 +228,7 @@ namespace chess {
                     return true;
                 }
 
+                // make sure king is not moving into danger
                 if ( src.piece->type() == pieces::name_t::king ) {
                     if ( game_board.determine_threat( src, dst, dst, true ) ) {
                         return true;
@@ -239,6 +240,7 @@ namespace chess {
                     return true;
                 }
 
+                // make sure king is not moving into danger
                 if ( src.piece->type() == pieces::name_t::king ) {
                     if ( game_board.determine_threat( src, dst, dst, false ) ) {
                         return true;
