@@ -43,6 +43,8 @@ namespace chess {
         void             stop();
         game_state const get_state() const;
 
+        bool checkmate( bool const colour ) const;
+
     private:
         game_state  state;
         game::board game_board;

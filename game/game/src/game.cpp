@@ -1,5 +1,6 @@
 #include <board.hpp>
 #include <game.hpp>
+#include <iostream>
 #include <piece.hpp>
 #include <stdexcept>
 #include <string>
@@ -32,6 +33,24 @@ namespace chess {
             *reinterpret_cast< pieces::king * >( game_board.get( pieces::piece::itopos( 1, 5 ).value() ).piece.get() );
         black_king =
             *reinterpret_cast< pieces::king * >( game_board.get( pieces::piece::itopos( 8, 5 ).value() ).piece.get() );
+    }
+
+    bool chess_game::checkmate( bool const colour ) const
+    {
+        for ( int i = 1; i <= 8; i++ ) {
+            for ( int j = 1; j <= 8; j++ ) {
+                auto & src = game_board.get( pieces::piece::itopos( i, j ).value() );
+                if ( src.piece && src.piece->colour() == colour ) {
+                    std::vector< game::space > moves;
+                    moves.reserve( 64 );
+                    possible_moves( src, moves );
+                    if ( !moves.empty() ) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     pieces::move_status chess_game::move( game::space const & src, game::space const & dst )
@@ -72,11 +91,37 @@ namespace chess {
         }
 
         if ( white_move() ) {
-            state = game_state::black_move;
+            if ( game_board.determine_threat( game_board.get( black_king.get().position() ),
+                                              game_board.get( black_king.get().position() ),
+                                              game_board.get( black_king.get().position() ), false ) ) {
+                if ( checkmate( false ) ) {
+                    std::cout << "White Wins\n";
+                    state = game_state::white_wins;
+                }
+                else {
+                    state = game_state::black_check;
+                }
+            }
+            else {
+                state = game_state::black_move;
+            }
             white_castling_rights( src_piece_cpy, src.position() );
         }
         else if ( black_move() ) {
-            state = game_state::white_move;
+            if ( game_board.determine_threat( game_board.get( white_king.get().position() ),
+                                              game_board.get( white_king.get().position() ),
+                                              game_board.get( white_king.get().position() ), true ) ) {
+                if ( checkmate( true ) ) {
+                    std::cout << "Black Wins\n";
+                    state = game_state::black_wins;
+                }
+                else {
+                    state = game_state::white_check;
+                }
+            }
+            else {
+                state = game_state::white_move;
+            }
             black_castling_rights( src_piece_cpy, src.position() );
         }
         else {
