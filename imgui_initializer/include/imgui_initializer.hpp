@@ -1,8 +1,6 @@
 #ifndef __CHESS__IMGUI_INIT__INITIALIZER__HPP__
 #define __CHESS__IMGUI_INIT__INITIALIZER__HPP__
 
-#include <glad/glad.h>
-
 #include <GLFW/glfw3.h>
 
 #include <imgui.h>

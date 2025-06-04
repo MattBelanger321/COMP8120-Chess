@@ -39,11 +39,6 @@ namespace chess::display {
             glfwMakeContextCurrent( window );
             glfwSwapInterval( vsync_enabled ? 1 : 0 );
 
-            if ( !gladLoadGLLoader( (GLADloadproc)glfwGetProcAddress ) ) {
-                std::cout << "Failed to initialize GLAD" << std::endl;
-                return -1;
-            }
-
             // Set up window resize callback
             glfwSetWindowUserPointer( window, this );
             glfwSetFramebufferSizeCallback( window, framebuffer_size_callback );

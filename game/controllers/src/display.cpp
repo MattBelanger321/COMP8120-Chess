@@ -1,8 +1,10 @@
-#include "space.hpp"
 #include <display.hpp>
 #include <iostream>
 #include <piece.hpp>
+#include <space.hpp>
 #include <stdexcept>
+
+#include <algorithm>
 
 namespace chess::controller {
 

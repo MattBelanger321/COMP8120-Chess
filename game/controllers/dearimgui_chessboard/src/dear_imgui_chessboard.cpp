@@ -17,7 +17,7 @@ namespace chess::controller {
 
     void imgui_chessboard::init()
     {
-        const std::filesystem::path dir_path = "/home/matthew/GradSchool/COMP8120-Chess/assets/img/pieces";
+        const std::filesystem::path dir_path = "assets/img/pieces";
 
         if ( !std::filesystem::exists( dir_path ) || !std::filesystem::is_directory( dir_path ) ) {
             throw std::runtime_error( "ICONS DIRECTORY NOT FOUND" );

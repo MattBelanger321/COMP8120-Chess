@@ -2,6 +2,13 @@
 #define __CHESS__IMGUI_INIT__TEXTURE_LOADER__HPP__
 
 #include <GL/gl.h>  // or <GL/glew.h> / <glad/glad.h>
+
+#include <GLFW/glfw3.h>
+
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #include <string>
 #include <vector>
 

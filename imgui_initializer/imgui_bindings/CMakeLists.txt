@@ -4,7 +4,6 @@ project(glfw_bindings LANGUAGES CXX)
 
 find_package(imgui REQUIRED CONFIG)
 find_package(glfw3 REQUIRED CONFIG)
-find_package(glad REQUIRED CONFIG)
 find_package(stb REQUIRED CONFIG)
 
 add_library(${PROJECT_NAME}
@@ -32,5 +31,4 @@ target_link_libraries(${PROJECT_NAME}
 	imgui::imgui
 	glfw
 	stb::stb
-	glad::glad
 )
