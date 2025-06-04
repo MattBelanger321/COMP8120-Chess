@@ -1,6 +1,6 @@
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <gl/gl.h>
+
 #include <stb_image.h>
 #include <stdexcept>
 #include <texture_loader.hpp>
