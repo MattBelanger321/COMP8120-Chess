@@ -1,3 +1,4 @@
+#include "space.hpp"
 #include <bishop.hpp>
 #include <board.hpp>
 #include <cstdlib>
@@ -558,6 +559,41 @@ namespace chess::game {
 
             game_board.at( rank ).at( file ).piece = std::make_unique< pieces::pawn >( colour, rank, file );
         }
+    }
+
+    bool board::determine_threat( space const & src, space const & dst, space const & target,
+                                  bool const victim_colour ) const
+    {
+        if ( !src.piece ) {
+            return false;
+        }
+
+        // copy the board
+        auto board = *this;
+
+        // force the move on the copied board (src to dst)
+        board[dst.position().first].at( dst.position().second ).piece = src.piece->copy_piece();
+        if ( board[dst.position().first].at( dst.position().second ).piece ) {
+            board[dst.position().first].at( dst.position().second ).piece->place( src.position() );
+        }
+        board[src.position().first].at( src.position().second ).piece.reset();
+
+        for ( int i = 1; i <= 8; i++ ) {
+            for ( int j = 1; j <= 8; j++ ) {
+                auto          pos = pieces::piece::itopos( i, j ).value();
+                space const & sp  = board.get( pos );
+                // if sp has a piece that is a valid attacker
+                if ( sp.piece && sp.piece->colour() != victim_colour ) {
+                    auto possible_moves = board.possible_moves( sp );
+
+                    if ( std::find( possible_moves.begin(), possible_moves.end(), target ) != possible_moves.end() ) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;  //
     }
 
 }  // namespace chess::game

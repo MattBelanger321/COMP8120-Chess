@@ -46,6 +46,16 @@ namespace chess::game {
         space const & get( pieces::position_t pos ) const;
 
         void reset( bool const empty = false );
+
+        // returns true if after a hypothetical move from src to dst, target is under attack by the
+        // src piece's team, returns false otherwise, or if src has no piece
+        // victim colour is true if black is the threat, and false if white is the threat
+        bool determine_threat( space const & src, space const & dst, space const & target,
+                               bool const victim_colour ) const;
+
+        file_t const & operator[]( pieces::rank_t rank ) const { return game_board.at( rank ); }
+
+        file_t & operator[]( pieces::rank_t rank ) { return game_board.at( rank ); }
     };
 }  // namespace chess::game
 

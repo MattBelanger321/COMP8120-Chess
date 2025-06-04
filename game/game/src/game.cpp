@@ -5,6 +5,7 @@
 #include <string>
 
 #include <algorithm>
+#include <vector>
 
 namespace chess {
 
@@ -51,6 +52,17 @@ namespace chess {
 
         if ( pos.empty() || std::find( pos.begin(), pos.end(), dst ) == pos.end() ) {
             return pieces::move_status::illegal_move;
+        }
+
+        if ( src.piece->colour() ) {
+            if ( game_board.determine_threat( src, dst, game_board.get( white_king.get().position() ), true ) ) {
+                return pieces::move_status::enters_check;
+            }
+        }
+        else {
+            if ( game_board.determine_threat( src, dst, game_board.get( black_king.get().position() ), false ) ) {
+                return pieces::move_status::enters_check;
+            }
         }
 
         status = game_board.move( src.position(), dst.position() );
@@ -181,6 +193,20 @@ namespace chess {
                 }
             }
         }
+
+        std::erase_if( possible_moves, [this, &src]( game::space const & dst ) {
+            if ( src.piece->colour() ) {
+                if ( game_board.determine_threat( src, dst, game_board.get( white_king.get().position() ), true ) ) {
+                    return true;
+                }
+            }
+            else {
+                if ( game_board.determine_threat( src, dst, game_board.get( black_king.get().position() ), false ) ) {
+                    return true;
+                }
+            }
+            return false;
+        } );
 
         return pieces::move_status::valid;
     }
