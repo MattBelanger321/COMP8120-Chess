@@ -160,11 +160,18 @@ namespace chess {
 
         // if applicable add castling logic
         if ( src.piece->type() == pieces::name_t::king ) {
-            if ( src.piece->colour() ) {
+            if ( src.piece->colour() ) {  // White
                 if ( king_side_castle_white ) {
                     if ( !game_board.get( { pieces::rank_t::one, pieces::file_t::f } ).piece &&
                          !game_board.get( { pieces::rank_t::one, pieces::file_t::g } ).piece ) {
-                        possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::g } ) );
+                        if ( !game_board.determine_threat(
+                                 src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
+                                 game_board.get( { pieces::rank_t::one, pieces::file_t::f } ), true ) &&
+                             !game_board.determine_threat(
+                                 src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
+                                 game_board.get( { pieces::rank_t::one, pieces::file_t::g } ), true ) ) {
+                            possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::g } ) );
+                        }
                     }
                 }
 
@@ -172,15 +179,29 @@ namespace chess {
                     if ( !game_board.get( { pieces::rank_t::one, pieces::file_t::b } ).piece &&
                          !game_board.get( { pieces::rank_t::one, pieces::file_t::c } ).piece &&
                          !game_board.get( { pieces::rank_t::one, pieces::file_t::d } ).piece ) {
-                        possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::c } ) );
+                        if ( !game_board.determine_threat(
+                                 src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
+                                 game_board.get( { pieces::rank_t::one, pieces::file_t::d } ), true ) &&
+                             !game_board.determine_threat(
+                                 src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
+                                 game_board.get( { pieces::rank_t::one, pieces::file_t::c } ), true ) ) {
+                            possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::c } ) );
+                        }
                     }
                 }
             }
-            else {
+            else {  // Black
                 if ( king_side_castle_black ) {
                     if ( !game_board.get( { pieces::rank_t::eight, pieces::file_t::f } ).piece &&
                          !game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ).piece ) {
-                        possible_moves.push_back( game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ) );
+                        if ( !game_board.determine_threat(
+                                 src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
+                                 game_board.get( { pieces::rank_t::eight, pieces::file_t::f } ), false ) &&
+                             !game_board.determine_threat(
+                                 src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
+                                 game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ), false ) ) {
+                            possible_moves.push_back( game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ) );
+                        }
                     }
                 }
 
@@ -188,7 +209,14 @@ namespace chess {
                     if ( !game_board.get( { pieces::rank_t::eight, pieces::file_t::b } ).piece &&
                          !game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ).piece &&
                          !game_board.get( { pieces::rank_t::eight, pieces::file_t::d } ).piece ) {
-                        possible_moves.push_back( game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ) );
+                        if ( !game_board.determine_threat(
+                                 src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
+                                 game_board.get( { pieces::rank_t::eight, pieces::file_t::d } ), false ) &&
+                             !game_board.determine_threat(
+                                 src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
+                                 game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ), false ) ) {
+                            possible_moves.push_back( game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ) );
+                        }
                     }
                 }
             }
@@ -199,12 +227,25 @@ namespace chess {
                 if ( game_board.determine_threat( src, dst, game_board.get( white_king.get().position() ), true ) ) {
                     return true;
                 }
+
+                if ( src.piece->type() == pieces::name_t::king ) {
+                    if ( game_board.determine_threat( src, dst, dst, true ) ) {
+                        return true;
+                    }
+                }
             }
             else {
                 if ( game_board.determine_threat( src, dst, game_board.get( black_king.get().position() ), false ) ) {
                     return true;
                 }
+
+                if ( src.piece->type() == pieces::name_t::king ) {
+                    if ( game_board.determine_threat( src, dst, dst, false ) ) {
+                        return true;
+                    }
+                }
             }
+
             return false;
         } );
 
