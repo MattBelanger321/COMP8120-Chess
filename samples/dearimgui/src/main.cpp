@@ -4,7 +4,7 @@
 
 int main()
 {
-    chess::display::imgui_initializer window( "DearIMGUI Sample" );
+    chess::display::imgui_initializer window( "DearIMGUI Sample", 1280, 720 );
 
     auto func = std::function< void() >( []() {} );
 

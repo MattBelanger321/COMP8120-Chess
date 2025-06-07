@@ -73,13 +73,7 @@ namespace chess::controller {
         throw std::runtime_error( "Invalid Filename Given" );
     }
 
-    void imgui_chessboard::render()
-    {
-        ImGui::Begin( "Chess Game", nullptr,
-                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse );
-        draw_board();
-        ImGui::End();
-    }
+    void imgui_chessboard::render() { draw_board(); }
 
     void imgui_chessboard::draw_board()
     {
@@ -87,18 +81,11 @@ namespace chess::controller {
             init();
         }
 
-        // Use a unique ID for the child panel
-        ImGui::BeginChild( "ChessboardPanel", ImVec2( static_cast< float >( width ), static_cast< float >( width ) ),
-                           false,  // border
-                           ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
-                               ImGuiWindowFlags_NoScrollWithMouse );
         for ( int r = 1; r <= 8; r++ ) {
             for ( int f = 1; f <= 8; f++ ) {
                 draw_square( game_board( r, f ) );
             }
         }
-
-        ImGui::EndChild();
     }
 
     void imgui_chessboard::draw_square( space_context_t const & sp )

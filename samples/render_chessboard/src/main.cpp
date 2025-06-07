@@ -6,7 +6,7 @@
 
 int main()
 {
-    chess::display::imgui_initializer window( "COMP 8120 Chess Demo" );
+    chess::display::imgui_initializer window( "COMP 8120 Chess Demo", 1200, 900 );
 
     // chess::display
 

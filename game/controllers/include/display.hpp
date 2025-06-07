@@ -28,6 +28,9 @@ namespace chess::controller {
 
         space_context_t const get( int const i, int const j );
         void                  on_select( game::space const & sp );
+
+        void status_dialog();
+        void chess_board();
     };
 }  // namespace chess::controller
 

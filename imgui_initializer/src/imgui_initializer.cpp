@@ -7,8 +7,13 @@
 
 namespace chess::display {
 
-    imgui_initializer::imgui_initializer( std::string window_name ) :
-        window( nullptr ), glsl_version( "#version 130" ), window_name( std::move( window_name ) ), initialized( false )
+    imgui_initializer::imgui_initializer( std::string window_name, int width, int height ) :
+        window( nullptr ),
+        glsl_version( "#version 130" ),
+        window_name( std::move( window_name ) ),
+        initialized( false ),
+        window_width( width ),
+        window_height( height )
     {
     }
 

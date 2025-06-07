@@ -1,4 +1,5 @@
 #include <display.hpp>
+#include <imgui.h>
 #include <iostream>
 #include <piece.hpp>
 #include <space.hpp>
@@ -6,13 +7,15 @@
 
 #include <algorithm>
 
+#include <game.hpp>
+
 namespace chess::controller {
 
     display::display( unsigned int width, unsigned int height ) :
         width( width ),
         height( height ),
         board(
-            height * 0.8f, height * 0.8f,                      //
+            height * .975f, height * .9f,                      //
             [this]( int i, int j ) -> space_context_t const {  //
                 return this->get( i, j );
             },
@@ -76,12 +79,39 @@ namespace chess::controller {
 
     void display::render()
     {
-        // Set the position and size for the next window (top-left corner and full size)
-        ImGui::SetNextWindowPos( ImVec2( 0, 0 ), ImGuiCond_Always );
-        ImGui::SetNextWindowSize( ImVec2( static_cast< float >( height ), static_cast< float >( height ) ),
-                                  ImGuiCond_Always );
+        chess_board();
+        status_dialog();
+    }
+
+    void display::chess_board()
+    {
+
+        // Position this dialog to the right of the main panel
+        ImVec2 chess_board_pos = ImVec2( 0, 0 );
+        ImGui::SetNextWindowPos( chess_board_pos );
+        ImGui::SetNextWindowSize( ImVec2( height, height ) );  // Optional: match height
+        ImGui::Begin( "Chess Game", nullptr,
+                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
+                          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
 
         board.render();
+
+        ImGui::End();
+    }
+
+    void display::status_dialog()
+    {
+
+        // Position this dialog to the right of the main panel
+        ImVec2 status_dialog_pos = ImVec2( height, 0 );
+        ImGui::SetNextWindowPos( status_dialog_pos );
+        ImGui::SetNextWindowSize( ImVec2( 300, 400 ) );  // Optional: match height
+
+        ImGui::Begin( "Status Dialog", nullptr,
+                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
+                          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
+        ImGui::Text( "%s", chess::to_string( game.get_state() ).c_str() );
+        ImGui::End();
     }
 
 }  // namespace chess::controller

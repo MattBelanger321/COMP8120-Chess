@@ -15,7 +15,7 @@ namespace chess::display {
 
     class imgui_initializer {
     public:
-        imgui_initializer( std::string window_name );
+        imgui_initializer( std::string window_name, int width, int height );
         ~imgui_initializer();
 
         bool init();
@@ -36,10 +36,10 @@ namespace chess::display {
 
     private:
         std::string window_name;
-        bool        initialized    = false;
-        bool        vsync_enabled  = true;
-        int         window_width   = 750;
-        int         window_height  = 750;
+        bool        initialized   = false;
+        bool        vsync_enabled = true;
+        int         window_width;
+        int         window_height;
         float       clear_color[4] = { 0.45f, 0.55f, 0.60f, 1.00f };
 
         void main_loop( std::function< void() > render_function );
