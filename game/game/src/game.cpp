@@ -265,28 +265,32 @@ namespace chess {
         }
 
         std::erase_if( possible_moves, [this, &src]( game::space const & dst ) {
-            if ( src.piece->colour() ) {
-                if ( game_board.determine_threat( src, dst, game_board.get( white_king.get().position() ), true ) ) {
-                    return true;
-                }
+            auto king_pos = game_board.get( white_king.get().position() );
 
+            if ( src.piece->colour() ) {
                 // make sure king is not moving into danger
                 if ( src.piece->type() == pieces::name_t::king ) {
                     if ( game_board.determine_threat( src, dst, dst, true ) ) {
                         return true;
                     }
                 }
-            }
-            else {
-                if ( game_board.determine_threat( src, dst, game_board.get( black_king.get().position() ), false ) ) {
+                // otherwise, make sure the move is not entering check (or keeping us in check)
+                else if ( game_board.determine_threat( src, dst, king_pos, true ) ) {
                     return true;
                 }
+            }
+            else {
+                auto king_pos = game_board.get( black_king.get().position() );
 
                 // make sure king is not moving into danger
                 if ( src.piece->type() == pieces::name_t::king ) {
                     if ( game_board.determine_threat( src, dst, dst, false ) ) {
                         return true;
                     }
+                }
+                // otherwise, make sure the move is not entering check (or keeping us in check)
+                else if ( game_board.determine_threat( src, dst, king_pos, false ) ) {
+                    return true;
                 }
             }
 
