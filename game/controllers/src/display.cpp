@@ -114,7 +114,9 @@ namespace chess::controller {
         ImGui::Begin( "Status Dialog", nullptr,
                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
+        ImGui::SetWindowFontScale( 2.f );  // Scale factor (1.0 = normal size)
         ImGui::Text( "%s", chess::to_string( game.get_state() ).c_str() );
+        ImGui::SetWindowFontScale( 1.f );  // Scale factor (1.0 = normal size)
         ImGui::End();
     }
 
