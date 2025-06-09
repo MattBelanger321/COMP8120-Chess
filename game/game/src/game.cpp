@@ -37,12 +37,13 @@ namespace chess {
 
     bool chess_game::checkmate( bool const colour ) const
     {
+        std::vector< game::space > moves;
+        moves.reserve( 64 );
         for ( int i = 1; i <= 8; i++ ) {
             for ( int j = 1; j <= 8; j++ ) {
                 auto & src = game_board.get( pieces::piece::itopos( i, j ).value() );
                 if ( src.piece && src.piece->colour() == colour ) {
-                    std::vector< game::space > moves;
-                    moves.reserve( 64 );
+
                     possible_moves( src, moves );
                     if ( !moves.empty() ) {
                         return false;
@@ -94,12 +95,10 @@ namespace chess {
             if ( game_board.determine_threat( game_board.get( black_king.get().position() ),
                                               game_board.get( black_king.get().position() ),
                                               game_board.get( black_king.get().position() ), false ) ) {
+                state = game_state::black_check;
                 if ( checkmate( false ) ) {
                     std::cout << "White Wins\n";
                     state = game_state::white_wins;
-                }
-                else {
-                    state = game_state::black_check;
                 }
             }
             else {
@@ -111,12 +110,10 @@ namespace chess {
             if ( game_board.determine_threat( game_board.get( white_king.get().position() ),
                                               game_board.get( white_king.get().position() ),
                                               game_board.get( white_king.get().position() ), true ) ) {
+                state = game_state::white_check;
                 if ( checkmate( true ) ) {
                     std::cout << "Black Wins\n";
                     state = game_state::black_wins;
-                }
-                else {
-                    state = game_state::white_check;
                 }
             }
             else {
