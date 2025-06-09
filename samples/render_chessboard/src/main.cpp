@@ -10,7 +10,46 @@ int main()
 
     // chess::display
 
-    chess::controller::display controller( 720, 900 );
+    chess::controller::component_data board{
+        .size =
+            {
+                .width  = 900,
+                .height = 900,
+            },
+        .pos =
+            {
+                .x = 0,
+                .y = 0,
+            },
+    };
+
+    chess::controller::component_data status{
+        .size =
+            {
+                .width  = 300,
+                .height = 450,
+            },
+        .pos =
+            {
+                .x = board.size.width,
+                .y = 0,
+            },
+    };
+
+    chess::controller::component_data control{
+        .size =
+            {
+                .width  = 300,
+                .height = 450,
+            },
+        .pos =
+            {
+                .x = board.size.width,
+                .y = status.size.height,
+            },
+    };
+
+    chess::controller::display controller( board, status, control );
 
     auto func = std::function< void() >( [&controller]() { controller.render(); } );
 

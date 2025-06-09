@@ -11,15 +11,32 @@
 
 namespace chess::controller {
 
+    struct component_size {
+        int width;
+        int height;
+    };
+
+    struct component_pos {
+        int x;
+        int y;
+    };
+
+    struct component_data {
+        component_size size;
+        component_pos  pos;
+    };
+
     class display : public controller {
     public:
-        display( unsigned int width, unsigned int height );
+        display( component_data const board_dims, component_data const status_dims, component_data const control_dims );
 
         void render();
 
     private:
-        unsigned int   width;
-        unsigned int   height;
+        component_data const board_dims;
+        component_data const status_dims;
+        component_data const control_dims;
+
         board_callback get_space;
 
         std::vector< game::space > possible_moves;
@@ -30,6 +47,7 @@ namespace chess::controller {
         void                  on_select( game::space const & sp );
 
         void status_dialog();
+        void control_panel();
         void chess_board();
     };
 }  // namespace chess::controller

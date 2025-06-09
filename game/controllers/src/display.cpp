@@ -11,12 +11,14 @@
 
 namespace chess::controller {
 
-    display::display( unsigned int width, unsigned int height ) :
-        width( width ),
-        height( height ),
+    display::display( component_data const board_dims, component_data const status_dims,
+                      component_data const control_dims ) :
+        board_dims( board_dims ),
+        status_dims( status_dims ),
+        control_dims( control_dims ),
         board(
-            height * .975f, height * .9f,                      //
-            [this]( int i, int j ) -> space_context_t const {  //
+            board_dims.size.width * .975f, board_dims.size.height * .975f,  //
+            [this]( int i, int j ) -> space_context_t const {               //
                 return this->get( i, j );
             },
             [this]( game::space const & sp ) {  //
@@ -81,15 +83,16 @@ namespace chess::controller {
     {
         chess_board();
         status_dialog();
+        control_panel();
     }
 
     void display::chess_board()
     {
 
         // Position this dialog to the right of the main panel
-        ImVec2 chess_board_pos = ImVec2( 0, 0 );
+        ImVec2 chess_board_pos = ImVec2( board_dims.pos.x, board_dims.pos.y );
         ImGui::SetNextWindowPos( chess_board_pos );
-        ImGui::SetNextWindowSize( ImVec2( height, height ) );  // Optional: match height
+        ImGui::SetNextWindowSize( ImVec2( board_dims.size.width, board_dims.size.height ) );  // Optional: match height
         ImGui::Begin( "Chess Game", nullptr,
                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
@@ -103,14 +106,31 @@ namespace chess::controller {
     {
 
         // Position this dialog to the right of the main panel
-        ImVec2 status_dialog_pos = ImVec2( height, 0 );
+        ImVec2 status_dialog_pos = ImVec2( status_dims.pos.x, status_dims.pos.y );
         ImGui::SetNextWindowPos( status_dialog_pos );
-        ImGui::SetNextWindowSize( ImVec2( 300, 400 ) );  // Optional: match height
+        ImGui::SetNextWindowSize(
+            ImVec2( status_dims.size.width, status_dims.size.height ) );  // Optional: match height
 
         ImGui::Begin( "Status Dialog", nullptr,
                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
         ImGui::Text( "%s", chess::to_string( game.get_state() ).c_str() );
+        ImGui::End();
+    }
+
+    void display::control_panel()
+    {
+
+        // Position this dialog to the right of the main panel
+        ImVec2 control_panel_pos = ImVec2( control_dims.pos.x, control_dims.pos.y );
+        ImGui::SetNextWindowPos( control_panel_pos );
+        ImGui::SetNextWindowSize(
+            ImVec2( control_dims.size.width, control_dims.size.height ) );  // Optional: match height
+
+        ImGui::Begin( "Control Panel", nullptr,
+                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
+                          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
+        ImGui::Button( "I Am A Button" );
         ImGui::End();
     }
 
