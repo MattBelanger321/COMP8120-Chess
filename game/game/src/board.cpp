@@ -80,6 +80,15 @@ namespace chess::game {
             }
             game_board.at( pieces::rank_t::eight ).at( pieces::file_t::d ).piece.reset( from.release() );
         }
+
+        // pawn promotion
+        auto & dst_piece = get( dst ).piece;
+        if ( dst_piece && dst_piece->type() == pieces::name_t::pawn ) {
+            if ( dst.first == pieces::rank_t::eight || dst.first == pieces::rank_t::one )
+                ( *this )[dst.first].at( dst.second ).piece = std::make_unique< pieces::queen >(
+                    dst_piece->colour(), dst_piece->position().first, dst_piece->position().second );
+        }
+
         return pieces::move_status::valid;
     }
 
