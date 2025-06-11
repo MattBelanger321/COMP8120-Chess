@@ -264,7 +264,7 @@ namespace chess {
             }
         }
 
-        std::erase_if( possible_moves, [this, &src]( game::space const & dst ) {
+        std::erase_if( possible_moves, [this, &src, possible_moves]( game::space const & dst ) {
             auto king_pos = game_board.get( white_king.get().position() );
 
             if ( src.piece->colour() ) {
@@ -272,6 +272,25 @@ namespace chess {
                 if ( src.piece->type() == pieces::name_t::king ) {
                     if ( game_board.determine_threat( src, dst, dst, true ) ) {
                         return true;
+                    }
+
+                    // check castling through check
+                    if ( dst.position() == pieces::position_t{ pieces::rank_t::one, pieces::file_t::g } ) {
+                        if ( possible_moves.empty() ||
+                             std::find( possible_moves.begin(), possible_moves.end(),
+                                        pieces::position_t{ pieces::rank_t::one, pieces::file_t::f } ) ==
+                                 possible_moves.end() ) {
+                            return true;
+                        }
+                    }
+
+                    if ( dst.position() == pieces::position_t{ pieces::rank_t::one, pieces::file_t::c } ) {
+                        if ( possible_moves.empty() ||
+                             std::find( possible_moves.begin(), possible_moves.end(),
+                                        pieces::position_t{ pieces::rank_t::one, pieces::file_t::d } ) ==
+                                 possible_moves.end() ) {
+                            return true;
+                        }
                     }
                 }
                 // otherwise, make sure the move is not entering check (or keeping us in check)
@@ -286,6 +305,25 @@ namespace chess {
                 if ( src.piece->type() == pieces::name_t::king ) {
                     if ( game_board.determine_threat( src, dst, dst, false ) ) {
                         return true;
+                    }
+
+                    // check castling through check
+                    if ( dst.position() == pieces::position_t{ pieces::rank_t::eight, pieces::file_t::g } ) {
+                        if ( possible_moves.empty() ||
+                             std::find( possible_moves.begin(), possible_moves.end(),
+                                        pieces::position_t{ pieces::rank_t::eight, pieces::file_t::f } ) ==
+                                 possible_moves.end() ) {
+                            return true;
+                        }
+                    }
+
+                    if ( dst.position() == pieces::position_t{ pieces::rank_t::eight, pieces::file_t::c } ) {
+                        if ( possible_moves.empty() ||
+                             std::find( possible_moves.begin(), possible_moves.end(),
+                                        pieces::position_t{ pieces::rank_t::eight, pieces::file_t::d } ) ==
+                                 possible_moves.end() ) {
+                            return true;
+                        }
                     }
                 }
                 // otherwise, make sure the move is not entering check (or keeping us in check)
