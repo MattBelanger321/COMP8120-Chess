@@ -75,13 +75,31 @@ namespace chess {
         }
 
         if ( src.piece->colour() ) {
-            if ( game_board.determine_threat( src, dst, game_board.get( white_king.get().position() ), true ) ) {
-                return pieces::move_status::enters_check;
+            // if the king is being attacked
+            if ( src.piece->type() != pieces::name_t::king ) {
+                if ( game_board.determine_threat( src, dst, game_board.get( white_king.get().position() ), true ) ) {
+                    return pieces::move_status::enters_check;
+                }
+            }
+            else {
+                // if the king is moving into check
+                if ( game_board.determine_threat( src, dst, dst, true ) ) {
+                    return pieces::move_status::enters_check;
+                }
             }
         }
         else {
-            if ( game_board.determine_threat( src, dst, game_board.get( black_king.get().position() ), false ) ) {
-                return pieces::move_status::enters_check;
+            // if the king is being attacked
+            if ( src.piece->type() != pieces::name_t::king ) {
+                if ( game_board.determine_threat( src, dst, game_board.get( black_king.get().position() ), false ) ) {
+                    return pieces::move_status::enters_check;
+                }
+            }
+            else {
+                // if the king is moving into check
+                if ( game_board.determine_threat( src, dst, dst, true ) ) {
+                    return pieces::move_status::enters_check;
+                }
             }
         }
 
@@ -202,66 +220,99 @@ namespace chess {
 
         // if applicable add castling logic
         if ( src.piece->type() == pieces::name_t::king ) {
-            if ( src.piece->colour() ) {  // White
-                if ( king_side_castle_white ) {
-                    if ( !game_board.get( { pieces::rank_t::one, pieces::file_t::f } ).piece &&
-                         !game_board.get( { pieces::rank_t::one, pieces::file_t::g } ).piece ) {
-                        if ( !game_board.determine_threat(
-                                 src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
-                                 game_board.get( { pieces::rank_t::one, pieces::file_t::f } ), true ) &&
-                             !game_board.determine_threat(
-                                 src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
-                                 game_board.get( { pieces::rank_t::one, pieces::file_t::g } ), true ) ) {
+            // King cannot castle if currently in check
+            pieces::rank_t king_rank = src.piece->colour() ? pieces::rank_t::one : pieces::rank_t::eight;
+            bool           king_in_check =
+                game_board.determine_threat( src, game_board.get( { king_rank, pieces::file_t::e } ),
+                                             game_board.get( { king_rank, pieces::file_t::e } ), src.piece->colour() );
+
+            if ( !king_in_check ) {
+                if ( src.piece->colour() ) {  // White
+                    if ( king_side_castle_white ) {
+                        // Check if kingside castling squares are empty
+                        bool kingside_squares_empty =
+                            !game_board.get( { pieces::rank_t::one, pieces::file_t::f } ).piece &&
+                            !game_board.get( { pieces::rank_t::one, pieces::file_t::g } ).piece;
+
+                        // Check if king won't pass through or land on attacked squares
+                        bool kingside_path_safe =
+                            !game_board.determine_threat(
+                                src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
+                                game_board.get( { pieces::rank_t::one, pieces::file_t::f } ), true ) &&
+                            !game_board.determine_threat(
+                                src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
+                                game_board.get( { pieces::rank_t::one, pieces::file_t::g } ), true );
+
+                        if ( kingside_squares_empty && kingside_path_safe ) {
                             possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::g } ) );
                         }
                     }
-                }
 
-                if ( queen_side_castle_white ) {
-                    if ( !game_board.get( { pieces::rank_t::one, pieces::file_t::b } ).piece &&
-                         !game_board.get( { pieces::rank_t::one, pieces::file_t::c } ).piece &&
-                         !game_board.get( { pieces::rank_t::one, pieces::file_t::d } ).piece ) {
-                        if ( !game_board.determine_threat(
-                                 src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
-                                 game_board.get( { pieces::rank_t::one, pieces::file_t::d } ), true ) &&
-                             !game_board.determine_threat(
-                                 src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
-                                 game_board.get( { pieces::rank_t::one, pieces::file_t::c } ), true ) ) {
+                    if ( queen_side_castle_white ) {
+                        // Check if queenside castling squares are empty
+                        bool queenside_squares_empty =
+                            !game_board.get( { pieces::rank_t::one, pieces::file_t::b } ).piece &&
+                            !game_board.get( { pieces::rank_t::one, pieces::file_t::c } ).piece &&
+                            !game_board.get( { pieces::rank_t::one, pieces::file_t::d } ).piece;
+
+                        // Check if king won't pass through or land on attacked squares
+                        bool queenside_path_safe =
+                            !game_board.determine_threat(
+                                src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
+                                game_board.get( { pieces::rank_t::one, pieces::file_t::d } ), true ) &&
+                            !game_board.determine_threat(
+                                src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
+                                game_board.get( { pieces::rank_t::one, pieces::file_t::c } ), true );
+
+                        if ( queenside_squares_empty && queenside_path_safe ) {
                             possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::c } ) );
                         }
                     }
                 }
-            }
-            else {  // Black
-                if ( king_side_castle_black ) {
-                    if ( !game_board.get( { pieces::rank_t::eight, pieces::file_t::f } ).piece &&
-                         !game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ).piece ) {
-                        if ( !game_board.determine_threat(
-                                 src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
-                                 game_board.get( { pieces::rank_t::eight, pieces::file_t::f } ), false ) &&
-                             !game_board.determine_threat(
-                                 src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
-                                 game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ), false ) ) {
+                else {  // Black
+                    if ( king_side_castle_black ) {
+                        // Check if kingside castling squares are empty
+                        bool kingside_squares_empty =
+                            !game_board.get( { pieces::rank_t::eight, pieces::file_t::f } ).piece &&
+                            !game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ).piece;
+
+                        // Check if king won't pass through or land on attacked squares
+                        bool kingside_path_safe =
+                            !game_board.determine_threat(
+                                src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
+                                game_board.get( { pieces::rank_t::eight, pieces::file_t::f } ), false ) &&
+                            !game_board.determine_threat(
+                                src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
+                                game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ), false );
+
+                        if ( kingside_squares_empty && kingside_path_safe ) {
                             possible_moves.push_back( game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ) );
                         }
                     }
-                }
 
-                if ( queen_side_castle_black ) {
-                    if ( !game_board.get( { pieces::rank_t::eight, pieces::file_t::b } ).piece &&
-                         !game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ).piece &&
-                         !game_board.get( { pieces::rank_t::eight, pieces::file_t::d } ).piece ) {
-                        if ( !game_board.determine_threat(
-                                 src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
-                                 game_board.get( { pieces::rank_t::eight, pieces::file_t::d } ), false ) &&
-                             !game_board.determine_threat(
-                                 src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
-                                 game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ), false ) ) {
+                    if ( queen_side_castle_black ) {
+                        // Check if queenside castling squares are empty
+                        bool queenside_squares_empty =
+                            !game_board.get( { pieces::rank_t::eight, pieces::file_t::b } ).piece &&
+                            !game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ).piece &&
+                            !game_board.get( { pieces::rank_t::eight, pieces::file_t::d } ).piece;
+
+                        // Check if king won't pass through or land on attacked squares
+                        bool queenside_path_safe =
+                            !game_board.determine_threat(
+                                src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
+                                game_board.get( { pieces::rank_t::eight, pieces::file_t::d } ), false ) &&
+                            !game_board.determine_threat(
+                                src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
+                                game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ), false );
+
+                        if ( queenside_squares_empty && queenside_path_safe ) {
                             possible_moves.push_back( game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ) );
                         }
                     }
                 }
             }
+            // If king is in check, castling is not allowed
         }
 
         std::erase_if( possible_moves, [this, &src, possible_moves]( game::space const & dst ) {
