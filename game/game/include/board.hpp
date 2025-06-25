@@ -48,7 +48,7 @@ namespace chess::game {
         void reset( bool const empty = false );
 
         // returns true if after a hypothetical move from src to dst, target is under attack by the
-        // src piece's team, returns false otherwise, or if src has no piece
+        // not victims team, returns false otherwise, or if src has no piece
         // victim colour is true if black is the threat, and false if white is the threat
         // this function returns true even if target is under threat regardless
         bool determine_threat( space const & src, space const & dst, space const & target,
