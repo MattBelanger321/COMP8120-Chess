@@ -265,11 +265,14 @@ namespace chess::controller {
             for ( int j = 1; j <= 8; j++ ) {
                 auto & space = game.get( pieces::piece::itopos( i, j ).value() );
 
+                if ( !space.piece )
+                    continue;
+
                 auto temp_score     = 0.f;
                 auto material_score = 0.f;
 
                 if ( space.piece->colour() ) {
-                    switch ( space.get_piece()->type() ) {
+                    switch ( space.piece->type() ) {
                     case pieces::name_t::rook:
                         temp_score += 5;
                         material_score += chromosome.rook_val;
@@ -355,8 +358,10 @@ namespace chess::controller {
         using namespace std::chrono_literals;
 
         while ( !should_close ) {
-            if ( game.checkmate( true ) || game.checkmate( false ) ) {
-                return;
+            std::cout << "AI Online\n";
+
+            if ( ( game.white_move() && game.checkmate( true ) ) || ( game.black_move() && game.checkmate( false ) ) ) {
+                break;
             }
 
             if ( game.black_move() ) {
@@ -364,7 +369,10 @@ namespace chess::controller {
                 continue;
             }
 
+            std::cout << "AI Selecting Move...";
             auto selected_move = select_best_move();
+            std::cout << "AI selected move: " << to_string( selected_move.second.position() ) << " to "
+                      << to_string( selected_move.second.position() ) << "\n";
 
             select_space( selected_move.first.position() );
             if ( move( selected_move.second ) != pieces::move_status::valid ) {
@@ -372,6 +380,8 @@ namespace chess::controller {
                 return;
             }
         }
+
+        std::cout << "AI Offline\n";
     }
 
     void ai_controller::activate()
