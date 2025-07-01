@@ -25,18 +25,18 @@ def generate_chromosome():
     queen_val = np.random.uniform(0.1, 5)
     
     #Importance of chess mechanics like king safety
-    material_score_val = np.random.uniform(0.1, 5)
-    piece_mobility_val = np.random.uniform(0.1, 5)
-    center_control_val = np.random.uniform(0.1, 5)
-    king_safety_val = np.random.uniform(0.1, 5)
+    material_score_val = np.random.uniform(2, 5)
+    piece_mobility_val = np.random.uniform(1, 5)
+    center_control_val = np.random.uniform(1, 5)
+    king_safety_val = np.random.uniform(0.5, 2)
     
     #Scores for each piece's position on a board. Ex: Queen is generally better in the center, knight is generally worse on an edge
-    pawn_position_weights = np.random.uniform(0.1, 5, 64)
-    knight_position_weights = np.random.uniform(0.1, 5, 64)
-    bishop_position_weights = np.random.uniform(0.1, 5, 64)
-    rook_position_weights = np.random.uniform(0.1, 5, 64)
-    queen_position_weights = np.random.uniform(0.1, 5, 64)
-    king_position_weights = np.random.uniform(0.1, 5, 64)
+    pawn_position_weights = np.random.uniform(1, 5, 64)
+    knight_position_weights = np.random.uniform(1, 5, 64)
+    bishop_position_weights = np.random.uniform(1, 5, 64)
+    rook_position_weights = np.random.uniform(1, 5, 64)
+    queen_position_weights = np.random.uniform(1, 5, 64)
+    king_position_weights = np.random.uniform(1, 5, 64)
     
     #The chromosome itself is just an amalgamation of these weights
     chromosome = [
@@ -127,8 +127,6 @@ def king_safety(board):
     
         board_copy.pop()
     
-    
-    
     #If a king move is blocked because of check, penalize
     king_pseudo_moves = [move for move in board.generate_pseudo_legal_moves() if move.from_square == king_square]
 
@@ -198,8 +196,11 @@ def evaluate_position(board, chromosome):
     
     
     #Compute mobility, defined simply as the number of available moves
-    legal_moves = board.legal_moves.count()
-    score += piece_mobility_val * (legal_moves if board.turn == chess.WHITE else -legal_moves)
+    board_copy = board.copy()
+    board_copy.turn = chess.WHITE
+    score += piece_mobility_val * board.legal_moves.count()
+    board_copy.turn = chess.BLACK
+    score -= piece_mobility_val * board.legal_moves.count()
     
     #Compute center control. Applies center_control_val to each square where a piece is, otherwise applies half the val for
     #each piece that can attack a black piece at the center
@@ -292,22 +293,44 @@ def mutate(chromosome, mutation_rate=0.5, mutation_strength=0.1):
 
     return new_chromosome
 
-def select_best_move(board, chromosome):
+def select_best_move(board, chromosome, depth=2):
+    def minimax(board, depth, alpha, beta, maximizing_player):
+        if depth == 0 or board.is_game_over():
+            return evaluate_position(board, chromosome)
+
+        if maximizing_player:
+            max_eval = -float('inf')
+            for move in board.legal_moves:
+                board.push(move)
+                eval = minimax(board, depth - 1, alpha, beta, False)
+                board.pop()
+                max_eval = max(max_eval, eval)
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break
+            return max_eval
+        else:
+            min_eval = float('inf')
+            for move in board.legal_moves:
+                board.push(move)
+                eval = minimax(board, depth - 1, alpha, beta, True)
+                board.pop()
+                min_eval = min(min_eval, eval)
+                beta = min(beta, eval)
+                if beta <= alpha:
+                    break
+            return min_eval
+
     legal_moves = list(board.legal_moves)
-
-    if not legal_moves:
-        return None
-
     best_move = None
     best_score = -float('inf') if board.turn == chess.WHITE else float('inf')
 
     for move in legal_moves:
-        current_turn = board.turn
         board.push(move)
-        score = evaluate_position(board, chromosome)
+        score = minimax(board, depth - 1, -float('inf'), float('inf'), board.turn == chess.BLACK)
         board.pop()
 
-        if current_turn == chess.WHITE:
+        if board.turn == chess.WHITE:
             if score > best_score:
                 best_score = score
                 best_move = move
@@ -424,11 +447,11 @@ if __name__ == "__main__":
         if board.is_game_over():
             result = board.result()
             if result == '1-0':
-                return float("inf")
+                print("White won")
             elif result == '0-1':
-                return -float("inf")
+                print("Black won")
             else:
-                return material_balance(board)
+                print("No victory, material score:", material_balance(board))
 
         if board.turn == chess.WHITE:
             move = select_best_move(board, chromosome_white)
