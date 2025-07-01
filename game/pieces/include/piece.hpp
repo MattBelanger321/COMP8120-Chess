@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -91,6 +92,32 @@ namespace chess::pieces {
         return "INVALID STATUS CODE";
     }
 
+    using position_t = std::pair< rank_t, file_t >;
+
+    inline position_t mirror_vertically( pieces::position_t pos )
+    {
+        switch ( pos.first ) {
+        case pieces::rank_t::one:
+            return { pieces::rank_t::eight, pos.second };
+        case pieces::rank_t::two:
+            return { pieces::rank_t::seven, pos.second };
+        case pieces::rank_t::three:
+            return { pieces::rank_t::six, pos.second };
+        case pieces::rank_t::four:
+            return { pieces::rank_t::five, pos.second };
+        case pieces::rank_t::five:
+            return { pieces::rank_t::four, pos.second };
+        case pieces::rank_t::six:
+            return { pieces::rank_t::three, pos.second };
+        case pieces::rank_t::seven:
+            return { pieces::rank_t::two, pos.second };
+        case pieces::rank_t::eight:
+            return { pieces::rank_t::one, pos.second };
+        default:
+            throw std::runtime_error( "Invalid Rank" );
+        }
+    };
+
     inline bool is_success_status( pieces::move_status status )
     {
         return status == pieces::move_status::valid || status == pieces::move_status::king_side_castle_white ||
@@ -98,8 +125,6 @@ namespace chess::pieces {
                status == pieces::move_status::queen_side_castle_white ||
                status == pieces::move_status::queen_side_castle_black;
     }
-
-    using position_t = std::pair< rank_t, file_t >;
 
     inline std::string to_string( position_t position )
     {

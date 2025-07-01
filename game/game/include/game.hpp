@@ -55,28 +55,9 @@ namespace chess {
         }
     }
 
+    using move_t = std::pair< game::space, game::space >;
+
     class chess_game {
-    public:
-        chess_game();
-
-        pieces::move_status move( game::space const & src, game::space const & dst );
-
-        game::space const & get( pieces::position_t const & pos ) const;
-
-        std::string to_string() const;
-
-        pieces::move_status possible_moves( game::space const &          src,
-                                            std::vector< game::space > & possible_moves ) const;
-
-        bool white_move() const;
-        bool black_move() const;
-
-        void                    start();
-        void                    stop();
-        inline game_state const get_state() const { return state; }
-
-        bool checkmate( bool const colour ) const;
-
     private:
         game_state  state;
         game::board game_board;
@@ -92,6 +73,35 @@ namespace chess {
         bool king_side_castle_black;
         bool queen_side_castle_white;
         bool queen_side_castle_black;
+
+    public:
+        chess_game();
+
+        pieces::move_status move( game::space const & src, game::space const & dst );
+
+        game::space const & get( pieces::position_t const & pos ) const;
+
+        std::string to_string() const;
+
+        std::vector< game::space > psuedo_possible_moves( game::space const & src ) const;
+        pieces::move_status        possible_moves( game::space const &          src,
+                                                   std::vector< game::space > & possible_moves ) const;
+        std::vector< move_t >      legal_moves() const;
+
+        bool white_move() const;
+        bool black_move() const;
+
+        void start();
+        void stop();
+
+        inline game_state const get_state() const { return state; }
+
+        inline void const set_turn( bool const colour )
+        {
+            state = colour ? game_state::white_move : game_state::black_move;
+        }
+
+        bool checkmate( bool const colour ) const;
 
         // read only references to the king so we can check for checks
         std::reference_wrapper< pieces::king const > white_king;

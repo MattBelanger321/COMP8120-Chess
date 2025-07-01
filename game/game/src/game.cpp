@@ -1,3 +1,4 @@
+#include "space.hpp"
 #include <board.hpp>
 #include <game.hpp>
 #include <iostream>
@@ -197,6 +198,32 @@ namespace chess {
     game::space const & chess_game::get( pieces::position_t const & pos ) const { return game_board.get( pos ); }
 
     std::string chess_game::to_string() const { return game_board.to_string(); }
+
+    std::vector< game::space > chess_game::psuedo_possible_moves( game::space const & src ) const
+    {
+        return game_board.possible_moves( src );
+    }
+
+    std::vector< move_t > chess_game::legal_moves() const
+    {
+        std::vector< move_t > moves;
+        moves.reserve( 3000 );
+        for ( int i = 1; i <= 8; i++ ) {
+            for ( int j = 1; j <= 8; j++ ) {
+                auto & src = game_board.get( pieces::piece::itopos( i, j ).value() );
+
+                std::vector< game::space > dsts;
+                dsts.reserve( 100 );
+                possible_moves( src, dsts );
+
+                for ( auto const & dst : dsts ) {
+                    moves.push_back( { src, dst } );
+                }
+            }
+        }
+
+        return moves;
+    }
 
     pieces::move_status chess_game::possible_moves( game::space const &          src,
                                                     std::vector< game::space > & possible_moves ) const
