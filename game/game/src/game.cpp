@@ -104,7 +104,8 @@ namespace chess {
             }
         }
 
-        status = game_board.move( src.position(), dst.position() );
+        auto copy_dst = dst.position();
+        status        = game_board.move( src.position(), dst.position() );
 
         if ( status != pieces::move_status::valid ) {
             return status;
@@ -123,7 +124,15 @@ namespace chess {
             else {
                 state = game_state::black_move;
             }
+
             white_castling_rights( src_piece_cpy, src.position() );
+
+            if ( dst == pieces::piece::itopos( 8, 1 ) ) {
+                queen_side_castle_black = false;
+            }
+            else if ( dst == pieces::piece::itopos( 8, 8 ) ) {
+                king_side_castle_black = false;
+            }
         }
         else if ( black_move() ) {
             if ( game_board.determine_threat( game_board.get( white_king.get().position() ),
@@ -139,6 +148,12 @@ namespace chess {
                 state = game_state::white_move;
             }
             black_castling_rights( src_piece_cpy, src.position() );
+            if ( dst == pieces::piece::itopos( 1, 1 ) ) {
+                queen_side_castle_white = false;
+            }
+            else if ( dst == pieces::piece::itopos( 1, 8 ) ) {
+                king_side_castle_white = false;
+            }
         }
         else {
             throw std::logic_error( "Impossible Game State" );
