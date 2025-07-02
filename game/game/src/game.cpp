@@ -98,7 +98,7 @@ namespace chess {
             }
             else {
                 // if the king is moving into check
-                if ( game_board.determine_threat( src, dst, dst, true ) ) {
+                if ( game_board.determine_threat( src, dst, dst, false ) ) {
                     return pieces::move_status::enters_check;
                 }
             }

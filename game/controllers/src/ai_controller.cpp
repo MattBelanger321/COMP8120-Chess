@@ -3,6 +3,7 @@
 #include "piece.hpp"
 #include "space.hpp"
 #include <ai_controller.hpp>
+#include <exception>
 #include <iostream>
 #include <stdexcept>
 #include <thread>
@@ -434,7 +435,14 @@ namespace chess::controller {
     void ai_controller::activate()
     {
         should_close = false;
-        runner       = std::thread( [this]() { play(); } );
+        runner       = std::thread( [this]() {
+            try {
+                play();
+            }
+            catch ( std::exception const & e ) {
+                std::cout << "AI Crashed: " << e.what() << "\n";
+            }
+        } );
     }
 
     ai_controller::~ai_controller()
