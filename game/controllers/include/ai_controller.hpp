@@ -98,14 +98,14 @@ namespace chess::controller {
         void play();
 
         float  minimax( const chess_game & game, const int depth, float alpha, float beta,
-                        const bool maximizing_player );
-        move_t select_best_move( const int depth );
-        float  evaluate_position();
-        float  evaluate_position( const chess_game & board );
+                        const bool maximizing_player ) const;
+        move_t select_best_move( const int depth ) const;
+        float  evaluate_position() const;
+        float  evaluate_position( const chess_game & board ) const;
         // returns a value that should be added to the score of the entire position
-        float king_saftey( const chess_game & board );
-        float piece_score( const chess_game & game );
-        float position_score( const chess_game & game );
+        float king_saftey( const chess_game & board ) const;
+        float piece_score( const chess_game & game ) const;
+        float position_score( const chess_game & game ) const;
 
     public:
         ai_controller( chromosome_t chromie );

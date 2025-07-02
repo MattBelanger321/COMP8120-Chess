@@ -10,7 +10,7 @@
 namespace chess::controller {
     ai_controller::ai_controller( chromosome_t chromie ) : controller(), chromosome( chromie ) {}
 
-    float ai_controller::evaluate_position() { return evaluate_position( game ); }
+    float ai_controller::evaluate_position() const { return evaluate_position( game ); }
 
     // TODO: add to game class
     std::vector< game::space > attacks( std::vector< move_t > const & legal_moves, pieces::position_t const & pos )
@@ -26,7 +26,7 @@ namespace chess::controller {
         return attackers;
     }
 
-    float ai_controller::king_saftey( const chess_game & game )
+    float ai_controller::king_saftey( const chess_game & game ) const
     {
         float       king_safety_penalty = 0.f;
         const float penalty             = 1.f;
@@ -153,7 +153,7 @@ namespace chess::controller {
         return -king_safety_penalty;
     }
 
-    float ai_controller::evaluate_position( const chess_game & game )
+    float ai_controller::evaluate_position( const chess_game & game ) const
     {
         float score = 0.f;
 
@@ -202,7 +202,7 @@ namespace chess::controller {
         return score;
     }
 
-    float ai_controller::position_score( const chess_game & game )
+    float ai_controller::position_score( const chess_game & game ) const
     {
         float score = 0.f;
 
@@ -257,7 +257,7 @@ namespace chess::controller {
         return score;
     }
 
-    float ai_controller::piece_score( const chess_game & game )
+    float ai_controller::piece_score( const chess_game & game ) const
     {
         float score = 0.f;
 
@@ -313,7 +313,7 @@ namespace chess::controller {
     }
 
     float ai_controller::minimax( const chess_game & game, const int depth, float alpha, float beta,
-                                  const bool maximizing_player )
+                                  const bool maximizing_player ) const
     {
         if ( depth == 0 || game.get_state() == chess::game_state::white_wins ||
              game.get_state() == chess::game_state::black_wins || game.get_state() == chess::game_state::draw ) {
@@ -360,7 +360,7 @@ namespace chess::controller {
         }
     }
 
-    move_t ai_controller::select_best_move( const int depth )
+    move_t ai_controller::select_best_move( const int depth ) const
     {
         std::vector< move_t > legal_moves = game.legal_moves();
 
