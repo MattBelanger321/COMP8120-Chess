@@ -312,7 +312,55 @@ namespace chess::controller {
         return score;
     }
 
-    move_t ai_controller::select_best_move()
+    float ai_controller::minimax( const chess_game & game, const int depth, float alpha, float beta,
+                                  const bool maximizing_player )
+    {
+        if ( depth == 0 || game.get_state() == chess::game_state::white_wins ||
+             game.get_state() == chess::game_state::black_wins || game.get_state() == chess::game_state::draw ) {
+            return evaluate_position( game );
+        }
+
+        float max_eval;
+        float min_eval;
+
+        std::vector< move_t > legal_moves = game.legal_moves();
+        if ( maximizing_player ) {
+            max_eval = -std::numeric_limits< double >::infinity();
+
+            for ( const move_t & move : legal_moves ) {
+                chess_game possible_move = game;
+                possible_move.move( move.first, move.second );
+                float score = minimax( possible_move, depth - 1, alpha, beta, false );
+
+                max_eval = std::max( max_eval, score );
+                alpha    = std::max( alpha, score );
+                if ( beta <= alpha ) {
+                    break;
+                }
+            }
+
+            return max_eval;
+        }
+        else {
+            min_eval = std::numeric_limits< double >::infinity();
+
+            for ( const move_t & move : legal_moves ) {
+                chess_game possible_move = game;
+                possible_move.move( move.first, move.second );
+                float score = minimax( possible_move, depth - 1, alpha, beta, true );
+
+                min_eval = std::min( min_eval, score );
+                beta     = std::min( beta, score );
+                if ( beta <= alpha ) {
+                    break;
+                }
+            }
+
+            return min_eval;
+        }
+    }
+
+    move_t ai_controller::select_best_move( const int depth )
     {
         std::vector< move_t > legal_moves = game.legal_moves();
 
@@ -330,11 +378,10 @@ namespace chess::controller {
             // set if its whites turn
             bool current_turn = game.white_move();
 
-            chess_game possible_move = game;  // this is a copy of the game board that the candidate move will be
-                                              // applied to to evaluate the move
-
+            chess_game possible_move = game;
             possible_move.move( move.first, move.second );
-            float score = evaluate_position( possible_move );
+            float score = minimax( possible_move, 0, -std::numeric_limits< double >::infinity(),
+                                   std::numeric_limits< double >::infinity(), !current_turn );
 
             if ( current_turn ) {  // White's turn
                 if ( score > best_score ) {
@@ -370,7 +417,7 @@ namespace chess::controller {
             }
 
             std::cout << "AI Selecting Move...";
-            auto selected_move = select_best_move();
+            auto selected_move = select_best_move( 2 );
             std::cout << "AI selected move: " << to_string( selected_move.second.position() ) << " to "
                       << to_string( selected_move.second.position() ) << "\n";
 

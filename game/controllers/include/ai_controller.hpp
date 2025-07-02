@@ -77,7 +77,7 @@ namespace chess::controller {
 
     namespace values {
         constexpr int pawn   = 1;
-        constexpr int bishop = 13;
+        constexpr int bishop = 3;
         constexpr int knight = 3;
         constexpr int rook   = 5;
         constexpr int queen  = 9;
@@ -97,7 +97,9 @@ namespace chess::controller {
 
         void play();
 
-        move_t select_best_move();
+        float  minimax( const chess_game & game, const int depth, float alpha, float beta,
+                        const bool maximizing_player );
+        move_t select_best_move( const int depth );
         float  evaluate_position();
         float  evaluate_position( const chess_game & board );
         // returns a value that should be added to the score of the entire position
