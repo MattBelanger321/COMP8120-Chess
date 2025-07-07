@@ -27,7 +27,7 @@ namespace chess::controller {
         return attackers;
     }
 
-    float ai_controller::king_saftey( const chess_game & game ) const
+    float ai_controller::king_safety( const chess_game & game ) const
     {
         float       king_safety_penalty = 0.f;
         const float penalty             = 1.f;
@@ -196,7 +196,7 @@ namespace chess::controller {
             }
         }
 
-        score += chromosome.king_safety_val * king_saftey( game );
+        score += chromosome.king_safety_val * king_safety( game );
 
         score += position_score( game );
 
@@ -381,7 +381,7 @@ namespace chess::controller {
 
             chess_game possible_move = game;
             possible_move.move( move.first, move.second );
-            float score = minimax( possible_move, 0, -std::numeric_limits< double >::infinity(),
+            float score = minimax( possible_move, depth - 1, -std::numeric_limits< double >::infinity(),
                                    std::numeric_limits< double >::infinity(), !current_turn );
 
             if ( current_turn ) {  // White's turn

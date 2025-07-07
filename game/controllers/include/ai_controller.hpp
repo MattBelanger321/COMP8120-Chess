@@ -103,7 +103,7 @@ namespace chess::controller {
         float  evaluate_position() const;
         float  evaluate_position( const chess_game & board ) const;
         // returns a value that should be added to the score of the entire position
-        float king_saftey( const chess_game & board ) const;
+        float king_safety( const chess_game & board ) const;
         float piece_score( const chess_game & game ) const;
         float position_score( const chess_game & game ) const;
 
