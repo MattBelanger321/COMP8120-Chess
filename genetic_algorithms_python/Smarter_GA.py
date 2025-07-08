@@ -707,13 +707,13 @@ def mutate(chromosome, mutation_rate=0.5, mutation_strength=0.1):
     new_chromosome = copy.deepcopy(chromosome)
     
     # Mutate scalars
-    for i in range(9):
+    for i in range(18):
         if random.random() < mutation_rate:
             delta = random.uniform(-mutation_strength, mutation_strength)
             new_chromosome[i] += delta
     
     # Mutate piece-square tables
-    for i in range(9, len(new_chromosome)):
+    for i in range(18, len(new_chromosome)):
         table = new_chromosome[i]
         for j in range(len(table)):
             if random.random() < mutation_rate:
