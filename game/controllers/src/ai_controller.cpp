@@ -27,135 +27,195 @@ namespace chess::controller {
         return attackers;
     }
 
-    float ai_controller::king_safety( const chess_game & game ) const
+    float ai_controller::compute_material_score( const chess_game & game, const bool white ) const
     {
-        float       king_safety_penalty = 0.f;
-        const float penalty             = 1.f;
+        float score = 0.f;
 
-        // 1. Find white king position
-        pieces::position_t king_pos = game.white_king.get().position();
+        for ( int i = 1; i <= 8; i++ ) {
+            for ( int j = 1; j <= 8; j++ ) {
+                auto & space = game.get( pieces::piece::itopos( i, j ).value() );
 
-        int king_rank = static_cast< int >( king_pos.first );
-        int king_file = static_cast< int >( king_pos.second );
+                if ( !space.piece )
+                    continue;
 
-        // 2. Check open file above king
-        for ( int r = king_rank + 1; r <= 8; ++r ) {
-            const auto & sp = game.get( pieces::piece::itopos( king_file, r ).value() );
-            if ( sp.piece ) {
-                if ( sp.piece->colour() )
-                    break;
-                king_safety_penalty += 0.8f * penalty;
-                break;
-            }
-            else if ( r == 8 ) {
-                king_safety_penalty += 0.8f * penalty;
-            }
-        }
+                float material_score = 0.f;
 
-        // 3. Adjacent open files
-        for ( int f : { king_file - 1, king_file + 1 } ) {
-            if ( f < 1 || f > 8 )
-                continue;
-            for ( int r = king_rank; r <= 8; ++r ) {
-                const auto & sp = game.get( pieces::piece::itopos( f, r ).value() );
-                if ( sp.piece ) {
-                    if ( sp.piece->colour() )
+                if ( space.piece->colour() ) {
+                    switch ( space.piece->type() ) {
+                    case pieces::name_t::rook:
+                        material_score += values::rook;
                         break;
-                    king_safety_penalty += 0.8f * penalty;
-                    break;
+                    case pieces::name_t::knight:
+                        material_score += values::knight;
+                        break;
+                    case pieces::name_t::bishop:
+                        material_score += values::bishop;
+                        break;
+                    case pieces::name_t::king:
+                        material_score += values::king;
+                        break;
+                    case pieces::name_t::queen:
+                        material_score += values::queen;
+                        break;
+                    case pieces::name_t::pawn:
+                        material_score += values::pawn;
+                        break;
+                    }
                 }
-                else if ( r == 8 ) {
-                    king_safety_penalty += 0.8f * penalty;
+
+                if ( space.piece->colour() == white ) {
+                    score += material_score * chromosome.material_score_bonus;
                 }
-            }
-        }
-
-        // 4. Evaluate adjacent squares
-
-        // clang-format off
-        const std::vector< std::pair< int, int > > adjacent_offsets = { 
-            { -1, -1 }, { 0, -1 }, { 1, -1 },
-            { -1, 0 },             { 1, 0 },
-            { -1, 1 },  { 0, 1 },  { 1, 1 } 
-        };
-        // clang-format on
-
-        for ( const auto & [dx, dy] : adjacent_offsets ) {
-            int f = king_file + dx;
-            int r = king_rank + dy;
-            if ( f < 1 || f > 8 || r < 1 || r > 8 )
-                continue;
-
-            const auto & sp = game.get( pieces::piece::itopos( f, r ).value() );
-
-            if ( !sp.piece ) {
-                king_safety_penalty += 0.1f * penalty;
-            }
-            else if ( !sp.piece->colour() ) {
-                switch ( sp.piece->type() ) {
-                case pieces::name_t::pawn:
-                    king_safety_penalty += 1.f;
-                    break;
-                case pieces::name_t::knight:
-                case pieces::name_t::bishop:
-                    king_safety_penalty += 3.f;
-                    break;
-                case pieces::name_t::rook:
-                    king_safety_penalty += 5.f;
-                    break;
-                case pieces::name_t::queen:
-                    king_safety_penalty += 9.f;
-                    break;
-                default:
-                    break;
+                else {
+                    score -= material_score * chromosome.material_score_bonus;
                 }
             }
         }
 
-        // 5. Not on edge penalty
-        if ( king_rank != 1 ) {
-            if ( king_file != 1 && king_file != 8 && king_rank != 8 ) {
-                king_safety_penalty += 0.5f * penalty;
-            }
-            else {
-                king_safety_penalty += 0.3f * penalty;
-            }
-        }
-
-        // 6. Simulate black turn — can they check or checkmate?
-        chess_game board_copy = game;
-        board_copy.set_turn( false );
-
-        auto black_moves = board_copy.legal_moves();
-        for ( const auto & move : black_moves ) {
-            chess_game try_board = board_copy;
-            try_board.move( move.first, move.second );
-
-            if ( try_board.checkmate( true ) ) {
-                king_safety_penalty += 10.f * penalty;
-            }
-            else if ( try_board.get_state() == game_state::white_check ) {
-                king_safety_penalty += 2.f * penalty;
-            }
-        }
-
-        // 7. Try white king pseudo-legal moves (to see if most are under attack)
-        std::vector< game::space > king_pseudo_moves = game.psuedo_possible_moves( game.get( king_pos ) );
-
-        for ( const auto & move : king_pseudo_moves ) {
-            chess_game try_board = game;
-            try_board.move( game.get( king_pos ), move );
-
-            if ( try_board.get_state() == game_state::white_check ) {
-                king_safety_penalty += 1.f * penalty;
-            }
-        }
-
-        return -king_safety_penalty;
+        return score;
     }
 
-    float ai_controller::evaluate_position( const chess_game & game ) const
+    float ai_controller::compute_piece_mobility( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_castling_bonus( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_development_speed( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_doubled_pawn_score( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_isolated_pawn_score( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_connected_pawn_score( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_passed_pawn_score( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_king_pressure_score( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_piece_defense_score( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_bishop_pair_score( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_king_centralization_score( const chess_game & game, const bool white ) const
     {
+        int bishop_count = 0;
+        for ( int i = 1; i <= 8; i++ ) {
+            for ( int j = 1; j <= 8; j++ ) {
+                auto & space = game.get( pieces::piece::itopos( i, j ).value() );
+
+                if ( !space.piece )
+                    continue;
+
+                if ( space.piece->colour() && space.piece->colour() == white ) {
+                    switch ( space.piece->type() ) {
+                    case pieces::name_t::bishop:
+                        bishop_count++;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+        }
+
+        return bishop_count > 1;
+    }
+    float ai_controller::compute_knight_outpost_score( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_blocked_piece_score( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_space_control_score( const chess_game & game, const bool white ) const { return 0; }
+    float ai_controller::compute_king_shield_score( const chess_game & game, const bool white ) const { return 0; }
+
+    float ai_controller::evaluate_position( const chess_game & game, const bool white ) const
+    {
+        float score = 0;
+
+        float material_score = compute_material_score( game, white );
+        score += material_score * chromosome.material_score_bonus;
+
+        float piece_mobility_score = compute_piece_mobility( game, white );
+        score += piece_mobility_score * chromosome.piece_mobility_bonus;
+
+        float castling_score = compute_castling_bonus( game, white );
+        score += castling_score * chromosome.castling_bonus;
+
+        float development_speed_score = compute_development_speed( game, white );
+        score += development_speed_score * chromosome.development_speed_bonus;
+
+        float doubled_pawn_score = compute_doubled_pawn_score( game, white );
+        score += doubled_pawn_score * chromosome.doubled_pawn_penalty;
+
+        float isolated_pawn_score = compute_isolated_pawn_score( game, white );
+        score += isolated_pawn_score * chromosome.isolated_pawn_penalty;
+
+        float connected_pawn_score = compute_connected_pawn_score( game, white );
+        score += connected_pawn_score * chromosome.connected_pawn_bonus;
+
+        float passed_pawn_score = compute_passed_pawn_score( game, white );
+        score += passed_pawn_score * chromosome.passed_pawn_bonus;
+
+        float enemy_king_pressure_score = compute_king_pressure_score( game, not white );
+        score += enemy_king_pressure_score * chromosome.enemy_king_pressure_bonus;
+
+        float piece_defense_score = compute_piece_defense_score( game, white );
+        score += piece_defense_score * chromosome.piece_defense_bonus;
+
+        float bishop_pair_score = compute_bishop_pair_score( game, white );
+        score += bishop_pair_score * chromosome.bishop_pair_bonus;
+
+        float connected_rooks_score = compute_connected_rooks_score( game, white );
+        score += connected_rooks_score * chromosome.connected_rooks_bonus;
+
+        float king_centralization_score = compute_king_centralization_score( game, white );
+        score += king_centralization_score * chromosome.king_centralization_val;
+
+        float knight_outpost_score = compute_knight_outpost_score( game, white );
+        score += knight_outpost_score * chromosome.knight_outpost_bonus;
+
+        float blocked_piece_score = compute_blocked_piece_score( game, white );
+        score += blocked_piece_score * chromosome.blocked_piece_penalty;
+
+        float space_control_score = compute_space_control_score( game, white );
+        score += space_control_score * chromosome.space_control_in_opponent_half_bonus;
+
+        float king_shield_score = compute_king_shield_score( game, white );
+        score += king_shield_score * chromosome.king_shield_bonus;
+
+        float king_pressure_score = -compute_king_pressure_score( game, white );
+        score += king_pressure_score * chromosome.king_pressure_penalty;
+
+        float pawn_position_score = 0
+        for square in board.pieces(chess.PAWN, chess.WHITE):
+            pawn_position_score += pawn_position_weights[square]
+        for square in board.pieces(chess.PAWN, chess.BLACK):
+            pawn_position_score -= pawn_position_weights[chess.square_mirror(square)]
+        score += pawn_position_score
+        
+        float knight_position_score = 0
+        for square in board.pieces(chess.KNIGHT, chess.WHITE):
+            knight_position_score += knight_position_weights[square]
+        for square in board.pieces(chess.KNIGHT, chess.BLACK):
+            knight_position_score -= knight_position_weights[chess.square_mirror(square)]
+        score += knight_position_score
+        
+        float bishop_position_score = 0
+        for square in board.pieces(chess.BISHOP, chess.WHITE):
+            bishop_position_score += bishop_position_weights[square]
+        for square in board.pieces(chess.BISHOP, chess.BLACK):
+            bishop_position_score -= bishop_position_weights[chess.square_mirror(square)]
+        score += bishop_position_score
+        
+        float rook_position_score = 0
+        for square in board.pieces(chess.ROOK, chess.WHITE):
+            rook_position_score += rook_position_weights[square]
+        for square in board.pieces(chess.ROOK, chess.BLACK):
+            rook_position_score -= rook_position_weights[chess.square_mirror(square)]
+        score += rook_position_score
+        
+        float queen_position_score = 0
+        for square in board.pieces(chess.QUEEN, chess.WHITE):
+            queen_position_score += queen_position_weights[square]
+        for square in board.pieces(chess.QUEEN, chess.BLACK):
+            queen_position_score -= queen_position_weights[chess.square_mirror(square)]
+        score += queen_position_score
+        
+        float king_position_score = 0
+        for square in board.pieces(chess.KING, chess.WHITE):
+            king_position_score += king_position_weights[square]
+        for square in board.pieces(chess.KING, chess.BLACK):
+            king_position_score -= king_position_weights[chess.square_mirror(square)]
+        score += king_position_score
+            
+        return score
+        /*
         float score = 0.f;
 
         score += piece_score( game );
@@ -201,6 +261,7 @@ namespace chess::controller {
         score += position_score( game );
 
         return score;
+        */
     }
 
     float ai_controller::position_score( const chess_game & game ) const
@@ -255,61 +316,6 @@ namespace chess::controller {
                 }
             }
         }
-        return score;
-    }
-
-    float ai_controller::piece_score( const chess_game & game ) const
-    {
-        float score = 0.f;
-
-        for ( int i = 1; i <= 8; i++ ) {
-            for ( int j = 1; j <= 8; j++ ) {
-                auto & space = game.get( pieces::piece::itopos( i, j ).value() );
-
-                if ( !space.piece )
-                    continue;
-
-                auto temp_score     = 0.f;
-                auto material_score = 0.f;
-
-                if ( space.piece->colour() ) {
-                    switch ( space.piece->type() ) {
-                    case pieces::name_t::rook:
-                        temp_score += 5;
-                        material_score += chromosome.rook_val;
-                        break;
-                    case pieces::name_t::knight:
-                        temp_score += 3;
-                        material_score += chromosome.knight_val;
-                        break;
-                    case pieces::name_t::bishop:
-                        temp_score += 3;
-                        material_score += chromosome.bishop_val;
-                        break;
-                    case pieces::name_t::king:
-                        break;
-                    case pieces::name_t::queen:
-                        temp_score += 9;
-                        material_score += chromosome.queen_val;
-                        break;
-                    case pieces::name_t::pawn:
-                        temp_score += 1;
-                        material_score += chromosome.pawn_val;
-                        break;
-                    }
-                }
-
-                temp_score += material_score * chromosome.material_score_val;
-
-                if ( !space.piece->colour() ) {
-                    score += temp_score;
-                }
-                else {
-                    score -= temp_score;
-                }
-            }
-        }
-
         return score;
     }
 
