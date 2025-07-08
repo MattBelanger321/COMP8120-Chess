@@ -13,6 +13,7 @@
 
 namespace chess::controller {
     struct chromosome_t {
+
         float pawn_val;
         float knight_val;
         float bishop_val;
@@ -81,6 +82,7 @@ namespace chess::controller {
         constexpr int knight = 3;
         constexpr int rook   = 5;
         constexpr int queen  = 9;
+        constexpr int king   = 0;
     }  // namespace values
 
     // E4, E5, D4.D5
