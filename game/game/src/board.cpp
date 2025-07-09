@@ -444,6 +444,50 @@ namespace chess::game {
         } );
     }
 
+    void board::filter_pawn_attacks( space const & current, std::vector< space > & moves ) const
+    {
+        if ( !current.piece ) {
+            return;
+        }
+
+        auto x = std::erase_if( moves, [&current]( space const & move ) {
+            int rank_diff =
+                static_cast< int >( current.position().first ) - static_cast< int >( move.position().first );
+            int file_diff = std::abs( static_cast< int >( current.position().second ) -
+                                      static_cast< int >( move.position().second ) );
+
+            // Only keep diagonal moves that are 1 square away
+            return !( rank_diff == 1 && file_diff == 1 );
+        } );
+    }
+    void board::filter_knight_attacks( space const & current, std::vector< space > & moves ) const
+    {
+        // It's expected that moves == knight.possible_moves(), so there's nothing to filter
+        return;
+    }
+    void board::filter_bishop_attacks( space const & current, std::vector< space > & moves ) const
+    {
+        if ( !current.piece ) {
+            return;
+        }
+
+        auto x = std::erase_if( moves, [&current]( space const & move ) {
+            int rank_diff = std::abs( static_cast< int >( current.position().first ) -
+                                      static_cast< int >( move.position().first ) );
+            int file_diff = std::abs( static_cast< int >( current.position().second ) -
+                                      static_cast< int >( move.position().second ) );
+
+            return !( ( rank_diff == 2 && file_diff == 1 ) || ( rank_diff == 1 && file_diff == 2 ) );
+        } );
+    }
+    void board::filter_rook_attacks( space const & current, std::vector< space > & moves ) const {}
+    void board::filter_queen_attacks( space const & current, std::vector< space > & moves ) const
+    {
+        filter_rook_attacks( current, moves );
+        filter_bishop_attacks( current, moves );
+    }
+    void board::filter_king_attacks( space const & current, std::vector< space > & moves ) const {}
+
     space const & board::get( pieces::position_t pos ) const { return game_board.at( pos.first ).at( pos.second ); }
 
     std::string board::to_string() const

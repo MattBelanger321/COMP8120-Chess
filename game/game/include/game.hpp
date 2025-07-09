@@ -61,6 +61,7 @@ namespace chess {
     private:
         game_state  state;
         game::board game_board;
+        int         attack_map[8][8];
 
         // based on the moved piece thene functions update the castling status flags
         void white_castling_rights( std::unique_ptr< pieces::piece > const & moved_piece,
@@ -90,9 +91,11 @@ namespace chess {
 
         std::vector< game::space > find_attackers( game::space const & src, bool const victim_color ) const;
 
-        bool                       can_castle( bool const color ) const;
-        void                       remove_piece_at( pieces::position_t position );
-        std::vector< std::string > get_move_history() const;
+        bool                              can_castle( bool const color ) const;
+        void                              remove_piece_at( pieces::position_t position );
+        std::vector< std::string >        get_move_history() const;
+        void                              update_attack_map();
+        std::vector< pieces::position_t > possible_attacks( game::space const & src ) const;
 
         bool white_move() const;
         bool black_move() const;

@@ -31,6 +31,13 @@ namespace chess::game {
         void filter_queen_moves( space const & current, std::vector< space > & moves ) const;
         void filter_king_moves( space const & current, std::vector< space > & moves ) const;
 
+        void filter_pawn_attacks( space const & current, std::vector< space > & moves ) const;
+        void filter_knight_attacks( space const & current, std::vector< space > & moves ) const;
+        void filter_bishop_attacks( space const & current, std::vector< space > & moves ) const;
+        void filter_rook_attacks( space const & current, std::vector< space > & moves ) const;
+        void filter_queen_attacks( space const & current, std::vector< space > & moves ) const;
+        void filter_king_attacks( space const & current, std::vector< space > & moves ) const;
+
     public:
         // empty is set if there should be no pieces put on the board
         board( bool const empty = false );

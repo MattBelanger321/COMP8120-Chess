@@ -1,12 +1,12 @@
 #include "space.hpp"
+#include <algorithm>
 #include <board.hpp>
+#include <chrono>
 #include <game.hpp>
 #include <iostream>
 #include <piece.hpp>
 #include <stdexcept>
 #include <string>
-
-#include <algorithm>
 #include <vector>
 
 namespace chess {
@@ -228,6 +228,59 @@ namespace chess {
 
     std::string chess_game::to_string() const { return game_board.to_string(); }
 
+    void chess_game::update_attack_map()
+    {
+        for ( int i = 0; i < 8; i++ ) {
+            for ( int j = 0; j < 8; j++ ) {
+                attack_map[i][j] = 0;
+            }
+        }
+
+        for ( int i = 1; i <= 8; i++ ) {
+            for ( int j = 1; j <= 8; j++ ) {
+
+                auto & space = game_board.get( pieces::piece::itopos( i, j ).value() );
+                if ( !space.piece ) {
+                    continue;
+                }
+                auto attacks = possible_attacks( space );
+                for ( auto m : attacks ) {
+                    int rank = static_cast< int >( m.first );
+                    int file = static_cast< int >( m.second );
+
+                    if ( space.piece->colour() ) {
+                        attack_map[rank - 1][file - 1] |= 1;
+                    }
+                    else {
+                        attack_map[rank - 1][file - 1] |= 2;
+                    }
+                }
+            }
+        }
+
+        for ( int i = 0; i < 8; i++ ) {
+            for ( int j = 0; j < 8; j++ ) {
+                std::cout << attack_map[i][j] << " ";
+            }
+            std::cout << std::endl;
+        }
+        exit( 1 );
+    }
+
+    std::vector< pieces::position_t > chess_game::possible_attacks( game::space const & src ) const
+    {
+        std::vector< pieces::position_t > attack_squares;
+
+        if ( !src.piece ) {
+            return attack_squares;
+        }
+
+        auto piece_attack_squares = src.piece->possible_moves();
+        // need to filter attacking moves, considering blocked pieces and pins
+
+        return piece_attack_squares;
+    }
+
     std::vector< game::space > chess_game::psuedo_possible_moves( game::space const & src ) const
     {
         return game_board.possible_moves( src );
@@ -257,6 +310,12 @@ namespace chess {
     pieces::move_status chess_game::possible_moves( game::space const &          src,
                                                     std::vector< game::space > & possible_moves ) const
     {
+
+        // std::chrono::high_resolution_clock::time_point start, end;
+        // std::chrono::microseconds                      duration;
+
+        // start = std::chrono::high_resolution_clock::now();
+
         if ( !src.piece ) {
             return pieces::move_status::no_piece_to_move;
         }
@@ -278,7 +337,17 @@ namespace chess {
         if ( src.piece->type() == pieces::name_t::king ) {
             // King cannot castle if currently in check
             pieces::rank_t king_rank = src.piece->colour() ? pieces::rank_t::one : pieces::rank_t::eight;
-            bool           king_in_check =
+
+            std::cout << "checking king check" << std::endl;
+
+            for ( int i = 0; i < 8; i++ ) {
+                for ( int j = 0; j < 8; j++ ) {
+                    std::cout << attack_map[i][j] << " ";
+                }
+                std::cout << std::endl;
+            }
+            exit( 1 );
+            bool king_in_check =
                 game_board.determine_threat( src, game_board.get( { king_rank, pieces::file_t::e } ),
                                              game_board.get( { king_rank, pieces::file_t::e } ), src.piece->colour() );
 
@@ -441,6 +510,10 @@ namespace chess {
 
             return false;
         } );
+
+        // end      = std::chrono::high_resolution_clock::now();
+        // duration = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
+        // std::cout << "Possible moves took " << duration.count() << " microseconds\n";
 
         return pieces::move_status::valid;
     }
