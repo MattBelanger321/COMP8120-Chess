@@ -206,6 +206,20 @@ namespace chess {
         }
     }
 
+    bool chess_game::can_castle( bool const color ) const
+    {
+        if ( color ) {
+            return ( king_side_castle_white || queen_side_castle_white );
+        }
+        else {
+            return ( king_side_castle_black || queen_side_castle_black );
+        }
+    }
+
+    void chess_game::remove_piece_at( pieces::position_t position ) { game_board.remove_piece_at( position ); }
+
+    std::vector< std::string > chess_game::get_move_history() const { return game_board.get_move_history(); }
+
     bool chess_game::white_move() const { return state == game_state::white_move || state == game_state::white_check; }
 
     bool chess_game::black_move() const { return state == game_state::black_move || state == game_state::black_check; }
@@ -429,6 +443,24 @@ namespace chess {
         } );
 
         return pieces::move_status::valid;
+    }
+
+    std::vector< game::space > chess_game::find_attackers( game::space const & src, bool const victim_color ) const
+    {
+        std::vector< game::space > attackers;
+
+        auto moves = legal_moves();
+
+        for ( auto m : moves ) {
+
+            if ( m.second == src ) {
+                if ( m.first.piece && m.first.piece->colour() && m.first.piece->colour() != victim_color ) {
+                    attackers.push_back( m.second );
+                }
+            }
+        }
+
+        return attackers;
     }
 
 }  // namespace chess

@@ -58,6 +58,9 @@ namespace chess::game {
                 from->place( { pieces::rank_t::one, pieces::file_t::f } );
             }
             game_board.at( pieces::rank_t::one ).at( pieces::file_t::f ).piece.reset( from.release() );
+            move_history.push_back( "O-O" );
+
+            return pieces::move_status::valid;
         }
         else if ( status == pieces::move_status::king_side_castle_black ) {
             auto & from = game_board.at( pieces::rank_t::eight ).at( pieces::file_t::h ).piece;
@@ -65,6 +68,9 @@ namespace chess::game {
                 from->place( { pieces::rank_t::eight, pieces::file_t::f } );
             }
             game_board.at( pieces::rank_t::eight ).at( pieces::file_t::f ).piece.reset( from.release() );
+            move_history.push_back( "O-O" );
+
+            return pieces::move_status::valid;
         }
         else if ( status == pieces::move_status::queen_side_castle_white ) {
             auto & from = game_board.at( pieces::rank_t::one ).at( pieces::file_t::a ).piece;
@@ -72,6 +78,9 @@ namespace chess::game {
                 from->place( { pieces::rank_t::one, pieces::file_t::d } );
             }
             game_board.at( pieces::rank_t::one ).at( pieces::file_t::d ).piece.reset( from.release() );
+            move_history.push_back( "O-O-O" );
+
+            return pieces::move_status::valid;
         }
         else if ( status == pieces::move_status::queen_side_castle_black ) {
             auto & from = game_board.at( pieces::rank_t::eight ).at( pieces::file_t::a ).piece;
@@ -79,16 +88,24 @@ namespace chess::game {
                 from->place( { pieces::rank_t::eight, pieces::file_t::d } );
             }
             game_board.at( pieces::rank_t::eight ).at( pieces::file_t::d ).piece.reset( from.release() );
+            move_history.push_back( "O-O-O" );
+
+            return pieces::move_status::valid;
         }
 
         // pawn promotion
         auto & dst_piece = get( dst ).piece;
         if ( dst_piece && dst_piece->type() == pieces::name_t::pawn ) {
-            if ( dst.first == pieces::rank_t::eight || dst.first == pieces::rank_t::one )
+            if ( dst.first == pieces::rank_t::eight || dst.first == pieces::rank_t::one ) {
                 ( *this )[dst.first].at( dst.second ).piece = std::make_unique< pieces::queen >(
                     dst_piece->colour(), dst_piece->position().first, dst_piece->position().second );
+
+                move_history.push_back( pieces::to_string( dst ) + "=Q" );
+                return pieces::move_status::valid;
+            }
         }
 
+        move_history.push_back( pieces::to_string( src ) + pieces::to_string( dst ) );
         return pieces::move_status::valid;
     }
 
@@ -134,6 +151,13 @@ namespace chess::game {
 
         return spaces;
     }
+
+    void board::remove_piece_at( pieces::position_t position )
+    {
+        game_board.at( position.first ).at( position.second ).piece.reset();
+    }
+
+    std::vector< std::string > board::get_move_history() const { return move_history; }
 
     void board::filter_pawn_moves( space const & current, std::vector< space > & moves ) const
     {

@@ -88,13 +88,20 @@ namespace chess {
                                                    std::vector< game::space > & possible_moves ) const;
         std::vector< move_t >      legal_moves() const;
 
+        std::vector< game::space > find_attackers( game::space const & src, bool const victim_color ) const;
+
+        bool                       can_castle( bool const color ) const;
+        void                       remove_piece_at( pieces::position_t position );
+        std::vector< std::string > get_move_history() const;
+
         bool white_move() const;
         bool black_move() const;
 
         void start();
         void stop();
 
-        inline game_state const get_state() const { return state; }
+        inline game_state const  get_state() const { return state; }
+        inline game::board const get_board() const { return game_board; }
 
         inline void const set_turn( bool const colour )
         {

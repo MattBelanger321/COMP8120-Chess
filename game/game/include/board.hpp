@@ -17,6 +17,8 @@ namespace chess::game {
         // please use the at() function
         rank_t game_board;
 
+        std::vector< std::string > move_history;
+
         // an init function to place all the pieces on the board
         void place_pieces();
 
@@ -40,10 +42,14 @@ namespace chess::game {
         // this function checks for logic then moves if valid
         pieces::move_status move( pieces::position_t const & src, pieces::position_t const & dst );
 
+        std::vector< std::string > get_move_history() const;
+
         std::string to_string() const;
 
         // returns a reference to the space at the given position
         space const & get( pieces::position_t pos ) const;
+
+        void remove_piece_at( pieces::position_t position );
 
         void reset( bool const empty = false );
 

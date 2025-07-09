@@ -9,6 +9,7 @@
 #include <array>
 #include <controller.hpp>
 
+#include <iostream>
 #include <string>
 #include <thread>
 
@@ -44,29 +45,32 @@ namespace chess::controller {
 
         chromosome_t( const std::vector< float > & chromosome )
         {
-            constexpr size_t expected_size = 9 + 6 * 64;
-            if ( chromosome.size() < expected_size ) {
-                throw std::invalid_argument( "Chromosome must have at least 393 elements." );
+            constexpr size_t expected_size = 18 + 6 * 64;
+            if ( chromosome.size() != expected_size ) {
+                std::cout << "This exception doesn't get received ever, so it's a silent death" << std::flush;
+                std::cout << expected_size << " " << chromosome.size() << std::flush;
+                throw std::invalid_argument( "Chromosome size " + std::to_string( chromosome.size() ) +
+                                             " invalid, expected " + std::to_string( expected_size ) + "\n" );
             }
 
-            float material_score_bonus                 = chromosome[0];
-            float piece_mobility_bonus                 = chromosome[1];
-            float castling_bonus                       = chromosome[2];
-            float development_speed_bonus              = chromosome[3];
-            float doubled_pawn_penalty                 = chromosome[4];
-            float isolated_pawn_penalty                = chromosome[5];
-            float connected_pawn_penalty               = chromosome[6];
-            float passed_pawn_bonus                    = chromosome[7];
-            float enemy_king_pressure_bonus            = chromosome[8];
-            float piece_defense_bonus                  = chromosome[9];
-            float bishop_pair_bonus                    = chromosome[10];
-            float connected_rooks_bonus                = chromosome[11];
-            float king_centralization_val              = chromosome[12];
-            float knight_outpost_bonus                 = chromosome[13];
-            float blocked_piece_penalty                = chromosome[14];
-            float space_control_in_opponent_half_bonus = chromosome[15];
-            float king_shield_bonus                    = chromosome[16];
-            float king_pressure_penalty                = chromosome[17];
+            material_score_bonus                 = chromosome[0];
+            piece_mobility_bonus                 = chromosome[1];
+            castling_bonus                       = chromosome[2];
+            development_speed_bonus              = chromosome[3];
+            doubled_pawn_penalty                 = chromosome[4];
+            isolated_pawn_penalty                = chromosome[5];
+            connected_pawn_bonus                 = chromosome[6];
+            passed_pawn_bonus                    = chromosome[7];
+            enemy_king_pressure_bonus            = chromosome[8];
+            piece_defense_bonus                  = chromosome[9];
+            bishop_pair_bonus                    = chromosome[10];
+            connected_rooks_bonus                = chromosome[11];
+            king_centralization_val              = chromosome[12];
+            knight_outpost_bonus                 = chromosome[13];
+            blocked_piece_penalty                = chromosome[14];
+            space_control_in_opponent_half_bonus = chromosome[15];
+            king_shield_bonus                    = chromosome[16];
+            king_pressure_penalty                = chromosome[17];
 
             size_t offset = 18;
             assign_grid( pawn_position_weights, chromosome, offset );
