@@ -40,27 +40,25 @@ namespace chess::controller {
 
                 float material_score = 0.f;
 
-                if ( space.piece->colour() ) {
-                    switch ( space.piece->type() ) {
-                    case pieces::name_t::rook:
-                        material_score += values::rook;
-                        break;
-                    case pieces::name_t::knight:
-                        material_score += values::knight;
-                        break;
-                    case pieces::name_t::bishop:
-                        material_score += values::bishop;
-                        break;
-                    case pieces::name_t::king:
-                        material_score += values::king;
-                        break;
-                    case pieces::name_t::queen:
-                        material_score += values::queen;
-                        break;
-                    case pieces::name_t::pawn:
-                        material_score += values::pawn;
-                        break;
-                    }
+                switch ( space.piece->type() ) {
+                case pieces::name_t::rook:
+                    material_score += values::rook;
+                    break;
+                case pieces::name_t::knight:
+                    material_score += values::knight;
+                    break;
+                case pieces::name_t::bishop:
+                    material_score += values::bishop;
+                    break;
+                case pieces::name_t::king:
+                    material_score += values::king;
+                    break;
+                case pieces::name_t::queen:
+                    material_score += values::queen;
+                    break;
+                case pieces::name_t::pawn:
+                    material_score += values::pawn;
+                    break;
                 }
 
                 if ( space.piece->colour() == white ) {
