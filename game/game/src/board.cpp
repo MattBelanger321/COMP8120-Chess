@@ -10,6 +10,7 @@
 #include <rook.hpp>
 
 #include <algorithm>
+#include <iostream>
 #include <memory>
 #include <sstream>
 #include <vector>
@@ -152,9 +153,22 @@ namespace chess::game {
         return spaces;
     }
 
-    void board::remove_piece_at( pieces::position_t position )
+    void board::remove_piece_at( pieces::position_t const position )
     {
-        game_board.at( position.first ).at( position.second ).piece.reset();
+        remove_piece_at( ( *this ).game_board, position );
+    }
+    void board::remove_piece_at( rank_t & board, pieces::position_t const position )
+    {
+        board.at( position.first ).at( position.second ).piece.reset();
+    }
+
+    void board::add_piece_at( pieces::piece const & p, pieces::position_t const position )
+    {
+        add_piece_at( ( *this ).game_board, p, position );
+    }
+    void board::add_piece_at( rank_t & board, pieces::piece const & p, pieces::position_t const position )
+    {
+        board.at( position.first ).at( position.second ).piece = pieces::piece::copy_piece( p );
     }
 
     std::vector< std::string > board::get_move_history() const { return move_history; }
@@ -444,49 +458,232 @@ namespace chess::game {
         } );
     }
 
-    void board::filter_pawn_attacks( space const & current, std::vector< space > & moves ) const
+    void board::add_pawn_attacks( space const & current, std::vector< pieces::position_t > & moves ) const
     {
-        if ( !current.piece ) {
-            return;
+        int rank = static_cast< int >( current.position().first );
+        int file = static_cast< int >( current.position().second );
+        if ( current.piece->colour() ) {
+            if ( file - 1 >= 1 ) {
+                moves.push_back( pieces::piece::itopos( rank + 1, file - 1 ).value() );
+            }
+            if ( file + 1 <= 8 ) {
+                moves.push_back( pieces::piece::itopos( rank + 1, file + 1 ).value() );
+            }
+        }
+        else {
+            if ( file - 1 >= 1 ) {
+                moves.push_back( pieces::piece::itopos( rank - 1, file - 1 ).value() );
+            }
+            if ( file + 1 <= 8 ) {
+                moves.push_back( pieces::piece::itopos( rank - 1, file + 1 ).value() );
+            }
+        }
+    }
+    void board::add_knight_attacks( space const & current, std::vector< pieces::position_t > & moves ) const
+    {
+        int rank = static_cast< int >( current.position().first );
+        int file = static_cast< int >( current.position().second );
+
+        if ( rank - 2 >= 1 ) {
+            if ( file - 1 >= 1 ) {
+                moves.push_back( pieces::piece::itopos( rank - 2, file - 1 ).value() );
+            }
+            if ( file + 1 <= 8 ) {
+                moves.push_back( pieces::piece::itopos( rank - 2, file + 1 ).value() );
+            }
+        }
+        if ( rank + 2 <= 8 ) {
+            if ( file - 1 >= 1 ) {
+                moves.push_back( pieces::piece::itopos( rank + 2, file - 1 ).value() );
+            }
+            if ( file + 1 <= 8 ) {
+                moves.push_back( pieces::piece::itopos( rank + 2, file + 1 ).value() );
+            }
         }
 
-        auto x = std::erase_if( moves, [&current]( space const & move ) {
-            int rank_diff =
-                static_cast< int >( current.position().first ) - static_cast< int >( move.position().first );
-            int file_diff = std::abs( static_cast< int >( current.position().second ) -
-                                      static_cast< int >( move.position().second ) );
+        if ( file - 2 >= 1 ) {
+            if ( rank - 1 >= 1 ) {
+                moves.push_back( pieces::piece::itopos( rank - 1, file - 2 ).value() );
+            }
+            if ( rank + 1 <= 8 ) {
+                moves.push_back( pieces::piece::itopos( rank + 1, file - 2 ).value() );
+            }
+        }
+        if ( file + 2 <= 8 ) {
+            if ( rank - 1 >= 1 ) {
+                moves.push_back( pieces::piece::itopos( rank - 1, file + 2 ).value() );
+            }
+            if ( rank + 1 <= 8 ) {
+                moves.push_back( pieces::piece::itopos( rank + 1, file + 2 ).value() );
+            }
+        }
+    }
 
-            // Only keep diagonal moves that are 1 square away
-            return !( rank_diff == 1 && file_diff == 1 );
-        } );
-    }
-    void board::filter_knight_attacks( space const & current, std::vector< space > & moves ) const
+    void board::add_bishop_attacks( space const & current, std::vector< pieces::position_t > & moves ) const
     {
-        // It's expected that moves == knight.possible_moves(), so there's nothing to filter
-        return;
-    }
-    void board::filter_bishop_attacks( space const & current, std::vector< space > & moves ) const
-    {
-        if ( !current.piece ) {
-            return;
+        int rank_val = static_cast< int >( current.position().first );
+        int file_val = static_cast< int >( current.position().second );
+
+        for ( int rank = rank_val - 1, file = file_val - 1; rank >= 1 && file >= 1; rank--, file-- ) {
+            auto const & space =
+                game_board.at( static_cast< pieces::rank_t >( rank ) ).at( static_cast< pieces::file_t >( file ) );
+            moves.push_back( space.position() );
+
+            if ( space.piece ) {
+                break;
+            }
         }
 
-        auto x = std::erase_if( moves, [&current]( space const & move ) {
-            int rank_diff = std::abs( static_cast< int >( current.position().first ) -
-                                      static_cast< int >( move.position().first ) );
-            int file_diff = std::abs( static_cast< int >( current.position().second ) -
-                                      static_cast< int >( move.position().second ) );
+        for ( int rank = rank_val - 1, file = file_val + 1; rank >= 1 && file <= 8; rank--, file++ ) {
+            auto const & space =
+                game_board.at( static_cast< pieces::rank_t >( rank ) ).at( static_cast< pieces::file_t >( file ) );
+            moves.push_back( space.position() );
 
-            return !( ( rank_diff == 2 && file_diff == 1 ) || ( rank_diff == 1 && file_diff == 2 ) );
-        } );
+            if ( space.piece ) {
+                break;
+            }
+        }
+
+        for ( int rank = rank_val + 1, file = file_val - 1; rank <= 8 && file >= 1; rank++, file-- ) {
+            auto const & space =
+                game_board.at( static_cast< pieces::rank_t >( rank ) ).at( static_cast< pieces::file_t >( file ) );
+            moves.push_back( space.position() );
+
+            if ( space.piece ) {
+                break;
+            }
+        }
+
+        for ( int rank = rank_val + 1, file = file_val + 1; rank <= 8 && file <= 8; rank++, file++ ) {
+            auto const & space =
+                game_board.at( static_cast< pieces::rank_t >( rank ) ).at( static_cast< pieces::file_t >( file ) );
+            moves.push_back( space.position() );
+
+            if ( space.piece ) {
+                break;
+            }
+        }
     }
-    void board::filter_rook_attacks( space const & current, std::vector< space > & moves ) const {}
-    void board::filter_queen_attacks( space const & current, std::vector< space > & moves ) const
+
+    void board::add_rook_attacks( space const & current, std::vector< pieces::position_t > & moves ) const
     {
-        filter_rook_attacks( current, moves );
-        filter_bishop_attacks( current, moves );
+        int rank_val = static_cast< int >( current.position().first );
+        int file_val = static_cast< int >( current.position().second );
+
+        for ( int rank = rank_val - 1; rank >= 1; rank-- ) {
+            auto const & space =
+                game_board.at( static_cast< pieces::rank_t >( rank ) ).at( static_cast< pieces::file_t >( file_val ) );
+            moves.push_back( space.position() );
+
+            if ( space.piece ) {
+                break;
+            }
+        }
+
+        for ( int rank = rank_val + 1; rank <= 8; rank++ ) {
+            auto const & space =
+                game_board.at( static_cast< pieces::rank_t >( rank ) ).at( static_cast< pieces::file_t >( file_val ) );
+            moves.push_back( space.position() );
+
+            if ( space.piece ) {
+                break;
+            }
+        }
+
+        for ( int file = file_val - 1; file >= 1; file-- ) {
+            auto const & space =
+                game_board.at( static_cast< pieces::rank_t >( rank_val ) ).at( static_cast< pieces::file_t >( file ) );
+            moves.push_back( space.position() );
+
+            if ( space.piece ) {
+                break;
+            }
+        }
+
+        for ( int file = file_val + 1; file <= 8; file++ ) {
+            auto const & space =
+                game_board.at( static_cast< pieces::rank_t >( rank_val ) ).at( static_cast< pieces::file_t >( file ) );
+            moves.push_back( space.position() );
+
+            if ( space.piece ) {
+                break;
+            }
+        }
     }
-    void board::filter_king_attacks( space const & current, std::vector< space > & moves ) const {}
+    void board::add_queen_attacks( space const & current, std::vector< pieces::position_t > & moves ) const
+    {
+        add_rook_attacks( current, moves );
+        add_bishop_attacks( current, moves );
+    }
+    void board::add_king_attacks( space const & current, std::vector< pieces::position_t > & moves ) const
+    {
+        int rank = static_cast< int >( current.position().first );
+        int file = static_cast< int >( current.position().second );
+
+        if ( rank - 1 >= 1 ) {
+            if ( file - 1 >= 1 ) {
+                moves.push_back( pieces::piece::itopos( rank - 1, file - 1 ).value() );
+            }
+            if ( file + 1 <= 8 ) {
+                moves.push_back( pieces::piece::itopos( rank - 1, file + 1 ).value() );
+            }
+            moves.push_back( pieces::piece::itopos( rank - 1, file ).value() );
+        }
+        if ( rank + 1 <= 8 ) {
+            if ( file - 1 >= 1 ) {
+                moves.push_back( pieces::piece::itopos( rank + 1, file - 1 ).value() );
+            }
+            if ( file + 1 <= 8 ) {
+                moves.push_back( pieces::piece::itopos( rank + 1, file + 1 ).value() );
+            }
+            moves.push_back( pieces::piece::itopos( rank + 1, file ).value() );
+        }
+
+        if ( file - 1 >= 1 ) {
+            moves.push_back( pieces::piece::itopos( rank, file - 1 ).value() );
+        }
+        if ( file + 1 <= 8 ) {
+            moves.push_back( pieces::piece::itopos( rank, file + 1 ).value() );
+        }
+    }
+
+    std::vector< pieces::position_t > board::possible_attacks( space const & src ) const
+    {
+        // auto positions = src.possible_moves();  //
+
+        // if ( positions.empty() ) {
+        //     return {};
+        // }
+
+        std::vector< pieces::position_t > positions;
+
+        // for ( auto const & pos : positions ) {
+        //     spaces.push_back( game_board.at( pos.first ).at( pos.second ) );
+        // }
+
+        switch ( src.piece->type() ) {
+        case pieces::name_t::rook:
+            add_rook_attacks( src, positions );
+            break;
+        case pieces::name_t::knight:
+            add_knight_attacks( src, positions );
+            break;
+        case pieces::name_t::bishop:
+            add_bishop_attacks( src, positions );
+            break;
+        case pieces::name_t::king:
+            add_king_attacks( src, positions );
+            break;
+        case pieces::name_t::queen:
+            add_queen_attacks( src, positions );
+            break;
+        case pieces::name_t::pawn:
+            add_pawn_attacks( src, positions );
+            break;
+        }
+
+        return positions;
+    }
 
     space const & board::get( pieces::position_t pos ) const { return game_board.at( pos.first ).at( pos.second ); }
 

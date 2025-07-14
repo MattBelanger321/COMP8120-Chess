@@ -61,7 +61,6 @@ namespace chess {
     private:
         game_state  state;
         game::board game_board;
-        int         attack_map[8][8];
 
         // based on the moved piece thene functions update the castling status flags
         void white_castling_rights( std::unique_ptr< pieces::piece > const & moved_piece,
@@ -76,6 +75,130 @@ namespace chess {
         bool queen_side_castle_black;
 
     public:
+        struct color_attack_map {
+            int                               num_attackers;
+            std::vector< pieces::position_t > attacker_spaces;
+
+            void clear()
+            {
+                num_attackers = 0;
+                attacker_spaces.clear();
+            }
+
+            void add_attacker( pieces::position_t attacker )
+            {
+                num_attackers++;
+                attacker_spaces.push_back( attacker );
+            }
+
+            void remove_attacker( pieces::position_t attacker )
+            {
+                num_attackers--;
+                std::erase( attacker_spaces, attacker );
+            }
+
+            std::string to_string() const { return std::to_string( num_attackers ); }
+        };
+
+        struct attack_map {
+            color_attack_map white_attack_map[8][8];
+            color_attack_map black_attack_map[8][8];
+
+            void clear()
+            {
+                for ( int i = 0; i < 8; i++ ) {
+                    for ( int j = 0; j < 8; j++ ) {
+                        white_attack_map[i][j].clear();
+                        black_attack_map[i][j].clear();
+                    }
+                }
+            }
+
+            void add_attacker( game::space attacker, pieces::position_t position_attacked )
+            {
+                if ( !attacker.piece ) {
+                    return;
+                }
+
+                int rank = static_cast< int >( position_attacked.first );
+                int file = static_cast< int >( position_attacked.second );
+
+                if ( attacker.piece->colour() ) {
+                    white_attack_map[rank - 1][file - 1].add_attacker( position_attacked );
+                }
+                else {
+                    black_attack_map[rank - 1][file - 1].add_attacker( position_attacked );
+                }
+            }
+
+            void remove_attacker( game::space attacker, pieces::position_t position_attacked )
+            {
+                if ( !attacker.piece ) {
+                    return;
+                }
+
+                int rank = static_cast< int >( position_attacked.first );
+                int file = static_cast< int >( position_attacked.second );
+
+                if ( attacker.piece->colour() ) {
+                    white_attack_map[rank - 1][file - 1].remove_attacker( position_attacked );
+                }
+                else {
+                    black_attack_map[rank - 1][file - 1].remove_attacker( position_attacked );
+                }
+            }
+
+            int has_attackers( game::space s, bool color ) const
+            {
+                // return num_attackers(s, color) > 0;
+                int rank = static_cast< int >( s.position().first );
+                int file = static_cast< int >( s.position().second );
+
+                if ( color ) {
+                    return white_attack_map[rank - 1][file - 1].num_attackers > 0;
+                }
+                else {
+                    return black_attack_map[rank - 1][file - 1].num_attackers > 0;
+                }
+            }
+
+            int num_attackers( game::space s, bool color ) const
+            {
+                int rank = static_cast< int >( s.position().first );
+                int file = static_cast< int >( s.position().second );
+
+                if ( color ) {
+                    return white_attack_map[rank - 1][file - 1].num_attackers;
+                }
+                else {
+                    return black_attack_map[rank - 1][file - 1].num_attackers;
+                }
+            }
+
+            std::string to_string() const
+            {
+                std::string output = "White Attack Map:\n";
+                for ( int i = 0; i < 8; i++ ) {
+                    for ( int j = 0; j < 8; j++ ) {
+                        output += white_attack_map[7 - i][j].to_string() + " ";
+                    }
+                    output += "\n";
+                }
+                output += "\nBlack Attack Map\n";
+                for ( int i = 0; i < 8; i++ ) {
+                    for ( int j = 0; j < 8; j++ ) {
+                        output += black_attack_map[7 - i][j].to_string() + " ";
+                    }
+                    output += "\n";
+                }
+                output += "\n";
+
+                return output;
+            }
+        };
+
+        attack_map game_attack_map;
+
         chess_game();
 
         pieces::move_status move( game::space const & src, game::space const & dst );
@@ -84,8 +207,10 @@ namespace chess {
 
         std::string to_string() const;
 
-        std::vector< game::space > psuedo_possible_moves( game::space const & src ) const;
+        std::vector< game::space > psuedo_possible_moves( game::board game_board, game::space const & src ) const;
         pieces::move_status        possible_moves( game::space const &          src,
+                                                   std::vector< game::space > & possible_moves ) const;
+        pieces::move_status        possible_moves( game::board game_board, game::space const & src,
                                                    std::vector< game::space > & possible_moves ) const;
         std::vector< move_t >      legal_moves() const;
 
@@ -94,8 +219,10 @@ namespace chess {
         bool                              can_castle( bool const color ) const;
         void                              remove_piece_at( pieces::position_t position );
         std::vector< std::string >        get_move_history() const;
+        attack_map const                  generate_attack_map( game::board ) const;
         void                              update_attack_map();
         std::vector< pieces::position_t > possible_attacks( game::space const & src ) const;
+        std::vector< pieces::position_t > possible_attacks( game::board const & b, game::space const & src ) const;
 
         bool white_move() const;
         bool black_move() const;

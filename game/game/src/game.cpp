@@ -1,6 +1,8 @@
 #include "space.hpp"
 #include <algorithm>
+#include <array>
 #include <board.hpp>
+#include <cassert>
 #include <chrono>
 #include <game.hpp>
 #include <iostream>
@@ -34,24 +36,67 @@ namespace chess {
             *reinterpret_cast< pieces::king * >( game_board.get( pieces::piece::itopos( 1, 5 ).value() ).piece.get() );
         black_king =
             *reinterpret_cast< pieces::king * >( game_board.get( pieces::piece::itopos( 8, 5 ).value() ).piece.get() );
+        update_attack_map();
     }
 
     bool chess_game::checkmate( bool const colour ) const
     {
         std::vector< game::space > moves;
         moves.reserve( 64 );
+        auto board_copy = game_board;
+        // std::cout << game_attack_map.to_string();
+
+        // auto rook_square = board_copy.get( pieces::piece::itopos( 2, 1 ).value() );
+        // possible_moves( board_copy, rook_square, moves );
+        // std::cout << moves.size();
+        // exit( 1 );
+
         for ( int i = 1; i <= 8; i++ ) {
             for ( int j = 1; j <= 8; j++ ) {
-                auto & src = game_board.get( pieces::piece::itopos( i, j ).value() );
+                auto & src = board_copy.get( pieces::piece::itopos( i, j ).value() );
                 if ( src.piece && src.piece->colour() == colour ) {
-
-                    possible_moves( src, moves );
+                    possible_moves( board_copy, src, moves );
                     if ( !moves.empty() ) {
                         return false;
                     }
                 }
             }
         }
+
+        std::cout << "game thinks its checkmate\n";
+        // auto board = *this;
+        // auto a     = generate_attack_map( board.game_board );
+        // chess_game::attack_map m;
+        // auto                   queen   = get( pieces::piece::itopos( 7, 6 ).value() );
+        // auto                   attacks = possible_attacks( queen );
+
+        // std::cout << "Queen attacks: ";
+        // for ( auto p : attacks ) {
+        //     std::cout << pieces::to_string( p ) << " ";
+        // }
+        // std::cout << std::endl;
+
+        // chess_game::attack_map a;
+        // a.clear();
+        // std::cout << "queen color: " << ( queen.piece->colour() == true ) << std::endl;
+        // std::cout << "Fresh map:\n";
+        // std::cout << a.to_string();
+        // for ( auto m : attacks ) {
+        //     a.add_attacker( queen, m );
+        // }
+
+        // std::cout << "Post queen only:\n";
+        // std::cout << a.to_string();
+
+        // std::cout << "regular map and board:\n";
+        // std::cout << game_attack_map.to_string();
+        // std::cout << game_board.to_string();
+        // std::cout << a.to_string();
+
+        // auto                       black_king_space = get( pieces::piece::itopos( 8, 5 ).value() );
+        // std::vector< game::space > black_king_moves;
+        // possible_moves( black_king_space, black_king_moves );
+        // std::cout << "king moves: " << black_king_moves.size() << std::endl;
         return true;
     }
 
@@ -65,7 +110,7 @@ namespace chess {
         auto src_piece_cpy = src.piece->copy_piece();
 
         std::vector< game::space > pos;
-        auto                       status = possible_moves( src, pos );
+        auto                       status = possible_moves( game_board, src, pos );
 
         if ( status != pieces::move_status::valid ) {
             return status;
@@ -106,6 +151,15 @@ namespace chess {
 
         auto copy_dst = dst.position();
         status        = game_board.move( src.position(), dst.position() );
+        update_attack_map();
+        // std::cout << "This one worked\n";
+        // for ( int i = 0; i < 8; i++ ) {
+        //     for ( int j = 0; j < 8; j++ ) {
+        //         std::cout << attack_map[i][j] << " ";
+        //     }
+        //     std::cout << std::endl;
+        // }
+        // std::cout << "-------------------\n";
 
         if ( status != pieces::move_status::valid ) {
             return status;
@@ -158,7 +212,6 @@ namespace chess {
         else {
             throw std::logic_error( "Impossible Game State" );
         }
-
         return pieces::move_status::valid;
     }
 
@@ -230,44 +283,77 @@ namespace chess {
 
     void chess_game::update_attack_map()
     {
-        for ( int i = 0; i < 8; i++ ) {
-            for ( int j = 0; j < 8; j++ ) {
-                attack_map[i][j] = 0;
-            }
-        }
+        game_attack_map.clear();
+
+        // std::cout << game_board.to_string();
+        // std::cout << game_attack_map.to_string();
 
         for ( int i = 1; i <= 8; i++ ) {
             for ( int j = 1; j <= 8; j++ ) {
-
                 auto & space = game_board.get( pieces::piece::itopos( i, j ).value() );
                 if ( !space.piece ) {
                     continue;
                 }
                 auto attacks = possible_attacks( space );
-                for ( auto m : attacks ) {
-                    int rank = static_cast< int >( m.first );
-                    int file = static_cast< int >( m.second );
 
-                    if ( space.piece->colour() ) {
-                        attack_map[rank - 1][file - 1] |= 1;
-                    }
-                    else {
-                        attack_map[rank - 1][file - 1] |= 2;
-                    }
+                for ( auto m : attacks ) {
+                    game_attack_map.add_attacker( space, m );
                 }
             }
         }
 
-        for ( int i = 0; i < 8; i++ ) {
-            for ( int j = 0; j < 8; j++ ) {
-                std::cout << attack_map[i][j] << " ";
+        // std::cout << "After:\n";
+        // std::cout << game_attack_map.to_string();
+        // std::cout << game_board.to_string();
+    }
+
+    chess_game::attack_map const chess_game::generate_attack_map( game::board board ) const
+    {
+        std::chrono::high_resolution_clock::time_point start, end, startl, endl;
+        std::chrono::microseconds                      duration;
+
+        start = std::chrono::high_resolution_clock::now();
+
+        attack_map generated_map;
+        generated_map.clear();
+
+        for ( int i = 1; i <= 8; i++ ) {
+            for ( int j = 1; j <= 8; j++ ) {
+                std::cout << "before itopos\n";
+                auto & space = board.get( pieces::piece::itopos( i, j ).value() );
+
+                std::cout << "after itopos\n";
+                if ( !space.piece ) {
+                    continue;
+                }
+
+                std::cout << "after space.piece\n";
+
+                auto attacks = possible_attacks( board, space );
+
+                std::cout << "start adding attacker to map\n";
+                for ( auto m : attacks ) {
+                    generated_map.add_attacker( space, m );
+                }
+                std::cout << "end adding attacker to map\n";
             }
-            std::cout << std::endl;
         }
-        exit( 1 );
+
+        end      = std::chrono::high_resolution_clock::now();
+        duration = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
+        // std::cout << "generate attack map took " << duration.count() << " microseconds\n";
+
+        // exit( 1 );
+
+        return generated_map;
     }
 
     std::vector< pieces::position_t > chess_game::possible_attacks( game::space const & src ) const
+    {
+        return possible_attacks( game_board, src );
+    }
+    std::vector< pieces::position_t > chess_game::possible_attacks( game::board const & b,
+                                                                    game::space const & src ) const
     {
         std::vector< pieces::position_t > attack_squares;
 
@@ -275,39 +361,48 @@ namespace chess {
             return attack_squares;
         }
 
-        auto piece_attack_squares = src.piece->possible_moves();
-        // need to filter attacking moves, considering blocked pieces and pins
+        auto piece_attack_squares = b.possible_attacks( src );
+
+        // std::cout << "In possible attacks, size=: " << piece_attack_squares.size() << std::endl;
 
         return piece_attack_squares;
     }
 
-    std::vector< game::space > chess_game::psuedo_possible_moves( game::space const & src ) const
+    std::vector< game::space > chess_game::psuedo_possible_moves( game::board         game_board,
+                                                                  game::space const & src ) const
     {
         return game_board.possible_moves( src );
     }
 
     std::vector< move_t > chess_game::legal_moves() const
     {
+        auto                  board_copy = game_board;
         std::vector< move_t > moves;
         moves.reserve( 3000 );
+        // std::cout << "legal moves started\n";
         for ( int i = 1; i <= 8; i++ ) {
             for ( int j = 1; j <= 8; j++ ) {
-                auto & src = game_board.get( pieces::piece::itopos( i, j ).value() );
+                auto & src = board_copy.get( pieces::piece::itopos( i, j ).value() );
 
                 std::vector< game::space > dsts;
                 dsts.reserve( 100 );
-                possible_moves( src, dsts );
+                possible_moves( board_copy, src, dsts );
 
                 for ( auto const & dst : dsts ) {
                     moves.push_back( { src, dst } );
                 }
             }
         }
-
+        // std::cout << "legal moves terminated\n";
         return moves;
     }
+    pieces::move_status chess_game::possible_moves( game::space const & src, std::vector< game::space > & moves ) const
+    {
+        auto board_copy = game_board;
+        return possible_moves( board_copy, src, moves );
+    }
 
-    pieces::move_status chess_game::possible_moves( game::space const &          src,
+    pieces::move_status chess_game::possible_moves( game::board board_copy, game::space const & src,
                                                     std::vector< game::space > & possible_moves ) const
     {
 
@@ -332,189 +427,324 @@ namespace chess {
         }
 
         possible_moves = game_board.possible_moves( src );
-
+        // std::cout << "in possible_moves() move count: " << possible_moves.size() << std::endl;
+        // std::cout << "\t";
+        // for ( auto m : possible_moves )
+        //     std::cout << pieces::to_string( m.position() ) << " ";
+        // std::cout << std::endl;
+        // std::cout << "Initial pawn moves: " << possible_moves.size();
         // if applicable add castling logic
         if ( src.piece->type() == pieces::name_t::king ) {
+            pieces::position_t king_position = src.piece->position();
+            int                king_rank     = static_cast< int >( king_position.first );
+            int                king_file     = static_cast< int >( king_position.second );
+
+            // src.piece->colour() ? pieces::rank_t::one : pieces::rank_t::eight;
+
             // King cannot castle if currently in check
-            pieces::rank_t king_rank = src.piece->colour() ? pieces::rank_t::one : pieces::rank_t::eight;
+            bool king_in_check = game_attack_map.has_attackers( src, !src.piece->colour() );
 
-            std::cout << "checking king check" << std::endl;
+            if ( src.piece->colour() ) {  // White
+                if ( !king_in_check && king_side_castle_white ) {
+                    // Check if kingside castling squares are empty
+                    std::vector< game::space > castle_squares;
+                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 6 ).value() ) );
+                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 7 ).value() ) );
 
-            for ( int i = 0; i < 8; i++ ) {
-                for ( int j = 0; j < 8; j++ ) {
-                    std::cout << attack_map[i][j] << " ";
-                }
-                std::cout << std::endl;
-            }
-            exit( 1 );
-            bool king_in_check =
-                game_board.determine_threat( src, game_board.get( { king_rank, pieces::file_t::e } ),
-                                             game_board.get( { king_rank, pieces::file_t::e } ), src.piece->colour() );
+                    bool kingside_squares_empty = true;
+                    bool kingside_path_safe     = true;
 
-            if ( !king_in_check ) {
-                if ( src.piece->colour() ) {  // White
-                    if ( king_side_castle_white ) {
-                        // Check if kingside castling squares are empty
-                        bool kingside_squares_empty =
-                            !game_board.get( { pieces::rank_t::one, pieces::file_t::f } ).piece &&
-                            !game_board.get( { pieces::rank_t::one, pieces::file_t::g } ).piece;
-
-                        // Check if king won't pass through or land on attacked squares
-                        bool kingside_path_safe =
-                            !game_board.determine_threat(
-                                src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
-                                game_board.get( { pieces::rank_t::one, pieces::file_t::f } ), true ) &&
-                            !game_board.determine_threat(
-                                src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
-                                game_board.get( { pieces::rank_t::one, pieces::file_t::g } ), true );
-
-                        if ( kingside_squares_empty && kingside_path_safe ) {
-                            possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::g } ) );
+                    for ( auto s : castle_squares ) {
+                        if ( s.piece ) {
+                            kingside_squares_empty = false;
+                        }
+                        else if ( game_attack_map.has_attackers( s, !src.piece->colour() ) ) {
+                            kingside_path_safe = false;
                         }
                     }
 
-                    if ( queen_side_castle_white ) {
-                        // Check if queenside castling squares are empty
-                        bool queenside_squares_empty =
-                            !game_board.get( { pieces::rank_t::one, pieces::file_t::b } ).piece &&
-                            !game_board.get( { pieces::rank_t::one, pieces::file_t::c } ).piece &&
-                            !game_board.get( { pieces::rank_t::one, pieces::file_t::d } ).piece;
-
-                        // Check if king won't pass through or land on attacked squares
-                        bool queenside_path_safe =
-                            !game_board.determine_threat(
-                                src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
-                                game_board.get( { pieces::rank_t::one, pieces::file_t::d } ), true ) &&
-                            !game_board.determine_threat(
-                                src, game_board.get( { pieces::rank_t::one, pieces::file_t::e } ),
-                                game_board.get( { pieces::rank_t::one, pieces::file_t::c } ), true );
-
-                        if ( queenside_squares_empty && queenside_path_safe ) {
-                            possible_moves.push_back( game_board.get( { pieces::rank_t::one, pieces::file_t::c } ) );
-                        }
+                    if ( kingside_squares_empty && kingside_path_safe ) {
+                        possible_moves.push_back( board_copy.get( { pieces::rank_t::one, pieces::file_t::g } ) );
                     }
                 }
-                else {  // Black
-                    if ( king_side_castle_black ) {
-                        // Check if kingside castling squares are empty
-                        bool kingside_squares_empty =
-                            !game_board.get( { pieces::rank_t::eight, pieces::file_t::f } ).piece &&
-                            !game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ).piece;
 
-                        // Check if king won't pass through or land on attacked squares
-                        bool kingside_path_safe =
-                            !game_board.determine_threat(
-                                src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
-                                game_board.get( { pieces::rank_t::eight, pieces::file_t::f } ), false ) &&
-                            !game_board.determine_threat(
-                                src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
-                                game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ), false );
+                if ( !king_in_check && queen_side_castle_white ) {
+                    // Check if queenside castling squares are empty
+                    std::vector< game::space > castle_squares;
+                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 2 ).value() ) );
+                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 3 ).value() ) );
+                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 4 ).value() ) );
 
-                        if ( kingside_squares_empty && kingside_path_safe ) {
-                            possible_moves.push_back( game_board.get( { pieces::rank_t::eight, pieces::file_t::g } ) );
+                    bool queenside_squares_empty = true;
+                    bool queenside_path_safe     = true;
+
+                    for ( auto s : castle_squares ) {
+                        if ( s.piece ) {
+                            queenside_squares_empty = false;
+                        }
+                        else if ( game_attack_map.has_attackers( s, !src.piece->colour() ) ) {
+                            queenside_path_safe = false;
                         }
                     }
 
-                    if ( queen_side_castle_black ) {
-                        // Check if queenside castling squares are empty
-                        bool queenside_squares_empty =
-                            !game_board.get( { pieces::rank_t::eight, pieces::file_t::b } ).piece &&
-                            !game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ).piece &&
-                            !game_board.get( { pieces::rank_t::eight, pieces::file_t::d } ).piece;
-
-                        // Check if king won't pass through or land on attacked squares
-                        bool queenside_path_safe =
-                            !game_board.determine_threat(
-                                src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
-                                game_board.get( { pieces::rank_t::eight, pieces::file_t::d } ), false ) &&
-                            !game_board.determine_threat(
-                                src, game_board.get( { pieces::rank_t::eight, pieces::file_t::e } ),
-                                game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ), false );
-
-                        if ( queenside_squares_empty && queenside_path_safe ) {
-                            possible_moves.push_back( game_board.get( { pieces::rank_t::eight, pieces::file_t::c } ) );
-                        }
+                    if ( queenside_squares_empty && queenside_path_safe ) {
+                        possible_moves.push_back( board_copy.get( { pieces::rank_t::one, pieces::file_t::c } ) );
                     }
                 }
             }
-            // If king is in check, castling is not allowed
+            else {  // Black
+                if ( !king_in_check && king_side_castle_black ) {
+                    // Check if kingside castling squares are empty
+
+                    std::vector< game::space > castle_squares;
+                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 6 ).value() ) );
+                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 7 ).value() ) );
+
+                    bool kingside_squares_empty = true;
+                    bool kingside_path_safe     = true;
+
+                    for ( auto s : castle_squares ) {
+                        if ( s.piece ) {
+                            kingside_squares_empty = false;
+                        }
+                        else if ( game_attack_map.has_attackers( s, !src.piece->colour() ) ) {
+                            kingside_path_safe = false;
+                        }
+                    }
+
+                    if ( kingside_squares_empty && kingside_path_safe ) {
+                        possible_moves.push_back( board_copy.get( { pieces::rank_t::eight, pieces::file_t::g } ) );
+                    }
+                }
+
+                if ( !king_in_check && queen_side_castle_black ) {
+                    // Check if queenside castling squares are empty
+                    std::vector< game::space > castle_squares;
+                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 2 ).value() ) );
+                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 3 ).value() ) );
+                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 4 ).value() ) );
+
+                    bool queenside_squares_empty = true;
+                    bool queenside_path_safe     = true;
+
+                    for ( auto s : castle_squares ) {
+                        if ( s.piece ) {
+                            queenside_squares_empty = false;
+                        }
+                        else if ( game_attack_map.has_attackers( s, !src.piece->colour() ) ) {
+                            queenside_path_safe = false;
+                        }
+                    }
+                    if ( queenside_squares_empty && queenside_path_safe ) {
+                        possible_moves.push_back( board_copy.get( { pieces::rank_t::eight, pieces::file_t::c } ) );
+                    }
+                }
+            }
         }
+        std::erase_if( possible_moves, [this, &src, &board_copy]( game::space const & dst ) {
+            std::cout << "erase start\n";
+            int dst_rank = static_cast< int >( dst.position().first );
+            int dst_file = static_cast< int >( dst.position().second );
 
-        std::erase_if( possible_moves, [this, &src, possible_moves]( game::space const & dst ) {
-            auto king_pos = game_board.get( white_king.get().position() );
-
+            // std::cout << "Attack map in erase_if:\n";
+            // for ( int i = 0; i < 8; i++ ) {
+            //     for ( int j = 0; j < 8; j++ ) {
+            //         std::cout << attack_map[i][j] << " ";
+            //     }
+            //     std::cout << std::endl;
+            // }
+            // std::cout << "---------------------------\n";
+            // std::cout << "--------------\n";
+            // std::cout << "\niterating through: " << pieces::to_string( dst.position() ) << std::endl;
             if ( src.piece->colour() ) {
+                auto king_pos  = board_copy.get( white_king.get().position() );
+                int  king_rank = static_cast< int >( king_pos.position().first );
+                int  king_file = static_cast< int >( king_pos.position().second );
+
                 // make sure king is not moving into danger
                 if ( src.piece->type() == pieces::name_t::king ) {
-                    if ( game_board.determine_threat( src, dst, dst, true ) ) {
+                    std::unique_ptr< pieces::piece > king_piece;
+                    king_piece = pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
+                    std::cout << "king access start\n";
+                    board_copy.remove_piece_at( src.position() );
+                    auto temp_attack_map = generate_attack_map( board_copy );
+                    board_copy.add_piece_at( *king_piece, src.position() );
+                    std::cout << "king access end\n";
+
+                    if ( temp_attack_map.has_attackers( dst, !src.piece->colour() ) ) {
                         return true;
                     }
-
-                    // check castling through check
-                    if ( dst.position() == pieces::position_t{ pieces::rank_t::one, pieces::file_t::g } ) {
-                        if ( possible_moves.empty() ||
-                             std::find( possible_moves.begin(), possible_moves.end(),
-                                        pieces::position_t{ pieces::rank_t::one, pieces::file_t::f } ) ==
-                                 possible_moves.end() ) {
-                            return true;
-                        }
-                    }
-
-                    if ( dst.position() == pieces::position_t{ pieces::rank_t::one, pieces::file_t::c } ) {
-                        if ( possible_moves.empty() ||
-                             std::find( possible_moves.begin(), possible_moves.end(),
-                                        pieces::position_t{ pieces::rank_t::one, pieces::file_t::d } ) ==
-                                 possible_moves.end() ) {
-                            return true;
-                        }
-                    }
                 }
-                // otherwise, make sure the move is not entering check (or keeping us in check)
-                else if ( game_board.determine_threat( src, dst, king_pos, true ) ) {
-                    return true;
+                // Otherwise, we're not moving the king so check if the king is safe
+                else {
+                    // save the piece
+                    assert( board_copy.get( src.position() ).piece != nullptr );
+
+                    std::unique_ptr< pieces::piece > src_piece, dst_piece;
+
+                    src_piece = pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
+
+                    if ( board_copy.get( dst.position() ).piece ) {
+                        dst_piece = pieces::piece::copy_piece( *board_copy.get( dst.position() ).piece );
+                    }
+
+                    // Remove the src piece
+                    board_copy.remove_piece_at( src.position() );
+                    assert( !board_copy.get( src.position() ).piece );
+
+                    src_piece->place( dst.position() );
+                    board_copy.add_piece_at( *src_piece, dst.position() );
+                    assert( board_copy.get( dst.position() ).piece != nullptr );
+
+                    auto temp_attack_map = generate_attack_map( board_copy );
+                    // Since for speed I'm not copying the board more than I need to, we need to put the piece back
+                    // to its original square
+                    src_piece->place( src.position() );
+                    board_copy.add_piece_at( *src_piece, src.position() );
+                    assert( board_copy.get( src.position() ).piece != nullptr );
+
+                    if ( dst_piece ) {
+                        dst_piece->place( dst.position() );
+                        board_copy.add_piece_at( *dst_piece, dst.position() );
+                        assert( board_copy.get( dst.position() ).piece != nullptr );
+                    }
+                    else {
+                        board_copy.remove_piece_at( dst.position() );
+                    }
+
+                    if ( temp_attack_map.has_attackers( king_pos, !src.piece->colour() ) ) {
+                        // std::cout << "someone is attacking king somehow?\n";
+                        // std::cout << game_attack_map.to_string();
+                        // std::cout << "\n\n";
+                        // std::cout << temp_attack_map.to_string();
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
                 }
             }
             else {
-                auto king_pos = game_board.get( black_king.get().position() );
-
-                // make sure king is not moving into danger
+                std::cout << "black start\n";
+                auto king_pos  = board_copy.get( black_king.get().position() );
+                int  king_rank = static_cast< int >( king_pos.position().first );
+                int  king_file = static_cast< int >( king_pos.position().second );
+                // make sure
+                // king is not moving into danger
                 if ( src.piece->type() == pieces::name_t::king ) {
-                    if ( game_board.determine_threat( src, dst, dst, false ) ) {
+                    std::unique_ptr< pieces::piece > king_piece;
+                    king_piece = pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
+                    board_copy.remove_piece_at( src.position() );
+                    auto temp_attack_map = generate_attack_map( board_copy );
+                    board_copy.add_piece_at( *king_piece, src.position() );
+
+                    if ( temp_attack_map.has_attackers( dst, !src.piece->colour() ) ) {
                         return true;
                     }
-
-                    // check castling through check
-                    if ( dst.position() == pieces::position_t{ pieces::rank_t::eight, pieces::file_t::g } ) {
-                        if ( possible_moves.empty() ||
-                             std::find( possible_moves.begin(), possible_moves.end(),
-                                        pieces::position_t{ pieces::rank_t::eight, pieces::file_t::f } ) ==
-                                 possible_moves.end() ) {
-                            return true;
-                        }
-                    }
-
-                    if ( dst.position() == pieces::position_t{ pieces::rank_t::eight, pieces::file_t::c } ) {
-                        if ( possible_moves.empty() ||
-                             std::find( possible_moves.begin(), possible_moves.end(),
-                                        pieces::position_t{ pieces::rank_t::eight, pieces::file_t::d } ) ==
-                                 possible_moves.end() ) {
-                            return true;
-                        }
-                    }
                 }
-                // otherwise, make sure the move is not entering check (or keeping us in check)
-                else if ( game_board.determine_threat( src, dst, king_pos, false ) ) {
-                    return true;
+                // Otherwise, we're not moving the king so check if the king is safe
+                else {
+                    // Check if we're pinned to the king
+
+                    // save the piece
+                    std::unique_ptr< pieces::piece > src_piece, dst_piece;
+
+                    src_piece = pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
+                    if ( board_copy.get( dst.position() ).piece ) {
+                        dst_piece = pieces::piece::copy_piece( *board_copy.get( dst.position() ).piece );
+                    }
+
+                    // Remove the piece
+                    board_copy.remove_piece_at( src.position() );
+                    assert( !board_copy.get( src.position() ).piece );
+
+                    // Here, the king is in check. Add the piece we removed to the destination square, recompute the
+                    // attack map, and see if the king is still under attack. If not, it's a valid move
+
+                    // if ( ( attack_map[king_rank - 1][king_file - 1] & 2 ) > 0 ) {
+                    src_piece->place( dst.position() );
+                    board_copy.add_piece_at( *src_piece, dst.position() );
+                    assert( board_copy.get( dst.position() ).piece != nullptr );
+
+                    std::cout << "before attack map\n";
+                    auto temp_attack_map = generate_attack_map( board_copy );
+
+                    std::cout << "after attack map\n";
+                    // Since for speed I'm not copying the board more than I need to, we need to revert the moves we
+                    // made
+
+                    std::cout << "start revert\n";
+                    src_piece->place( src.position() );
+                    board_copy.add_piece_at( *src_piece, src.position() );
+                    assert( board_copy.get( src.position() ).piece != nullptr );
+
+                    std::cout << "end src re-add\n";
+                    if ( dst_piece ) {
+                        std::cout << "dst piece re-add";
+                        dst_piece->place( dst.position() );
+                        board_copy.add_piece_at( *dst_piece, dst.position() );
+                        assert( board_copy.get( dst.position() ).piece != nullptr );
+                    }
+                    else {
+                        std::cout << "dst position remove\n";
+                        board_copy.remove_piece_at( dst.position() );
+                    }
+                    // Check if the king is now in check
+                    // bool pinned = ( ( attack_map[king_rank - 1][king_file - 1] & 1 ) == 0 ) &&
+                    //               ( temp_attack_map[king_rank - 1][king_file - 1] & 1 ) > 0;
+                    // // If it is, we're pinned.
+                    // if ( pinned ) {
+                    //     board_copy.add_piece_at( *original_piece, src.position() );
+                    //     return true;
+                    // }
+
+                    // If we reach here, we are not pinned to the king
+                    // std::cout << "BLACK KING RANK FILE: " << king_rank << " " << king_file << std::endl;
+                    // Here, the king is in check. Add the piece we removed to the destination square, recompute the
+                    // attack map, and see if the king is still under attack. If not, it's a valid move
+                    if ( temp_attack_map.has_attackers( king_pos, !src.piece->colour() ) ) {
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                    // if ( ( attack_map[king_rank - 1][king_file - 1] & 1 ) > 0 ) {
+                    //     board_copy.add_piece_at( *original_piece, dst.position() );
+                    //     assert( board_copy.get( dst.position() ).piece != nullptr );
+
+                    //     temp_attack_map = generate_attack_map( board_copy );
+
+                    //     // Since for speed I'm not copying the board more than I need to, we need to put the
+                    //     piece back
+                    //     // to its original square
+                    //     board_copy.remove_piece_at( dst.position() );
+                    //     assert( !board_copy.get( dst.position() ).piece );
+
+                    //     board_copy.add_piece_at( *original_piece, src.position() );
+                    //     assert( board_copy.get( src.position() ).piece != nullptr );
+
+                    //     if ( ( temp_attack_map[king_rank - 1][king_file - 1] & 1 ) > 0 ) {
+                    //         return true;
+                    //     }
+                    //     else {
+                    //         return false;
+                    //     }
+                    // }
+                    // else {
+                    //     // Same thing, put the piece back to its original square
+                    //     board_copy.add_piece_at( *original_piece, src.position() );
+                    // }
                 }
             }
 
             return false;
         } );
 
+        std::cout << "erase end\n";
+
         // end      = std::chrono::high_resolution_clock::now();
         // duration = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         // std::cout << "Possible moves took " << duration.count() << " microseconds\n";
-
         return pieces::move_status::valid;
     }
 

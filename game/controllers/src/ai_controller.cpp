@@ -81,34 +81,111 @@ namespace chess::controller {
         float score = 0.0f;
         auto  color = white;
 
-        // std::chrono::high_resolution_clock::time_point start, end, startl, endl;
-        // std::chrono::microseconds                      duration;
+        std::chrono::high_resolution_clock::time_point start, end, startl, endl;
+        std::chrono::microseconds                      duration;
 
-        // start      = std::chrono::high_resolution_clock::now();
+        start      = std::chrono::high_resolution_clock::now();
         auto moves = game.legal_moves();
-        // end        = std::chrono::high_resolution_clock::now();
-        // duration   = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
+        end        = std::chrono::high_resolution_clock::now();
+        duration   = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         // std::cout << "Legal moves took " << duration.count() << " microseconds\n";
+        // exit( 1 );
 
+        // for ( int i = 1; i <= 8; i++ ) {
+        //     for ( int j = 1; j <= 8; j++ ) {
+        //         auto space = game.get( pieces::piece::itopos( i, j ).value() );
+        //         if ( !space.piece ) {
+        //             std::cout << "0 ";
+        //         }
+        //         else {
+        //             switch ( space.piece->type() ) {
+        //             case pieces::name_t::pawn:
+        //                 std::cout << "P ";
+        //                 break;
+        //             case pieces::name_t::knight:
+        //                 std::cout << "H ";
+        //                 break;
+        //             case pieces::name_t::bishop:
+        //                 std::cout << "B ";
+        //                 break;
+        //             case pieces::name_t::rook:
+        //                 std::cout << "R ";
+        //                 break;
+        //             case pieces::name_t::queen:
+        //                 std::cout << "Q ";
+        //                 break;
+        //             case pieces::name_t::king:
+        //                 std::cout << "K ";
+        //                 break;
+        //             }
+        //         }
+        //     }
+
+        //     std::cout << "\n";
+        // }
+        // std::cout << "\n";
+        chess_game::attack_map game_attack_map = game.game_attack_map;
+
+        // std::cout << "in controller:\n";
+        // std::cout << game_attack_map.to_string() << std::endl;
+        // exit( 1 );
+        // for ( int i = 1; i <= 8; i++ ) {
+        //     for ( int j = 1; j <= 8; j++ ) {
+        //         auto space = game.get( pieces::piece::itopos( i, j ).value() );
+
+        //         if ( !( space.piece && space.piece->colour() == white ) ) {
+        //             continue;
+        //         }
+
+        //         int num_attackers = game_attack_map.num_attackers( space, white ) ) {
+        //             score++;
+        //         }
+        //     }
+        // }
+        // std::cout << score << std::endl;
+        // exit( 1 );
+        // score = 0.0f;
         // startl = std::chrono::high_resolution_clock::now();
+        // std::cout << "num moves: " << moves.size() << std::endl;
+        // std::cout << "white: " << white << "\n";
+
         for ( auto const & move : moves ) {
-            // Only consider moves by the player with the given color
-            if ( move.first.piece && move.first.piece->colour() != color ) {
-                continue;
-            }
+            int num_defenders = game_attack_map.num_attackers( move.second, white );
+            int num_attackers = game_attack_map.num_attackers( move.second, !white );
+            // std::cout << "Space " << pieces::to_string( move.second.position() ) << " is defended by " <<
+            // num_defenders << " white pieces, and attacked by " << num_defenders << " black pieces\n";
 
-            // startl         = std::chrono::high_resolution_clock::now();
-            auto attackers = game.find_attackers( move.second, !color );
-            // endl           = std::chrono::high_resolution_clock::now();
-            // duration       = std::chrono::duration_cast< std::chrono::microseconds >( endl - startl );
-            // std::cout << "Find attackers took " << duration.count() << " microseconds\n";
-            // exit( 1 );
-            auto defenders = game.find_attackers( move.second, color );
-
-            if ( attackers.size() <= defenders.size() ) {
+            if ( num_defenders >= num_attackers ) {
                 score++;
             }
+            // else {
+            //     std::cout << pieces::to_string( move.first.position() ) << pieces::to_string( move.second.position()
+            //     ); std::cout << "\n";
+            // }
         }
+        // std::cout << score << std::endl;
+        // score = 0.0f;
+        // exit( 1 );
+        // for ( auto const & move : moves ) {
+        //     // Only consider moves by the player with the given color
+        //     if ( move.first.piece && move.first.piece->colour() != color ) {
+        //         continue;
+        //     }
+
+        //     // startl         = std::chrono::high_resolution_clock::now();
+        //     auto attackers = game.find_attackers( move.second, !color );
+        //     // endl           = std::chrono::high_resolution_clock::now();
+        //     // duration       = std::chrono::duration_cast< std::chrono::microseconds >( endl - startl );
+        //     // std::cout << "Find attackers took " << duration.count() << " microseconds\n";
+        //     // exit( 1 );
+        //     auto defenders = game.find_attackers( move.second, color );
+
+        //     if ( attackers.size() <= defenders.size() ) {
+        //         score++;
+        //     }
+        // }
+        // std::cout << score << std::endl;
+        // exit( 1 );
         // endl     = std::chrono::high_resolution_clock::now();
         // duration = std::chrono::duration_cast< std::chrono::microseconds >( endl - startl );
         // std::cout << "Piece mobility took " << duration.count() << " microseconds\n";
@@ -372,13 +449,15 @@ namespace chess::controller {
         std::array directions = { std::pair{ -1, -1 }, std::pair{ 0, -1 }, std::pair{ 1, -1 }, std::pair{ -1, 0 },
                                   std::pair{ 1, 0 },   std::pair{ -1, 1 }, std::pair{ 0, 1 },  std::pair{ 1, 1 } };
 
+        chess_game::attack_map game_attack_map = game.game_attack_map;
+
         for ( const auto & [df, dr] : directions ) {
             int f = king_file + df;
             int r = king_rank + dr;
             if ( f >= 1 && f <= 8 && r >= 1 && r <= 8 ) {
                 auto pos = game.get( pieces::piece::itopos( r, f ).value() );
 
-                if ( pos.piece && game.find_attackers( pos, white ).size() > 0 ) {
+                if ( game_attack_map.has_attackers( pos, white ) ) {
                     score -= 1;
                 }
             }
@@ -395,23 +474,26 @@ namespace chess::controller {
             }
         }
 
-        score -= temp_game.find_attackers( king_space, white ).size();
+        chess_game::attack_map temp_attack_map = game.generate_attack_map( temp_game.get_board() );
+        score -= temp_attack_map.has_attackers( king_space, white );
 
         return score;
     }
 
     float ai_controller::compute_piece_defense_score( const chess_game & game, const bool white ) const
     {
-        float score = 0.0f;
-
+        chess_game::attack_map game_attack_map = game.game_attack_map;
+        float                  score           = 0.0f;
         for ( int i = 1; i <= 8; i++ ) {
             for ( int j = 1; j <= 8; j++ ) {
-                auto & space = game.get( pieces::piece::itopos( i, j ).value() );
+                auto space = game.get( pieces::piece::itopos( i, j ).value() );
 
-                auto attackers = game.find_attackers( space, !white );
+                if ( !( space.piece && space.piece->colour() == white ) ) {
+                    continue;
+                }
 
-                if ( attackers.size() > 0 ) {
-                    score += 1;
+                if ( game_attack_map.has_attackers( space, white ) ) {
+                    score++;
                 }
             }
         }
@@ -652,11 +734,15 @@ namespace chess::controller {
             }
         }
 
+        chess_game::attack_map game_attack_map = game.game_attack_map;
         for ( auto space : spaces ) {
-            auto attackers = game.find_attackers( space, !white );
-            if ( attackers.size() != 0 ) {
+            if ( game_attack_map.has_attackers( space, white ) ) {
                 score += 1;
             }
+            // auto attackers = game.find_attackers( space, !white );
+            // if ( attackers.size() != 0 ) {
+            //     score += 1;
+            // }
         }
         return score;
     }
@@ -754,12 +840,15 @@ namespace chess::controller {
     }
     float ai_controller::evaluate_position( const chess_game & game, const bool white ) const
     {
+        chess_game game_copy = game;
+        game_copy.set_turn( white );
+
         float                                          score = 0;
         std::chrono::high_resolution_clock::time_point start, end;
         std::chrono::microseconds                      duration;
 
         start                = std::chrono::high_resolution_clock::now();
-        float material_score = compute_material_score( game, white );
+        float material_score = compute_material_score( game_copy, white );
         end                  = std::chrono::high_resolution_clock::now();
         duration             = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += material_score * chromosome.material_score_bonus;
@@ -767,7 +856,7 @@ namespace chess::controller {
         // std::cout << "material_score: " << material_score << std::endl;
 
         start                      = std::chrono::high_resolution_clock::now();
-        float piece_mobility_score = compute_piece_mobility( game, white );
+        float piece_mobility_score = compute_piece_mobility( game_copy, white );
         end                        = std::chrono::high_resolution_clock::now();
         duration                   = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += piece_mobility_score * chromosome.piece_mobility_bonus;
@@ -775,7 +864,7 @@ namespace chess::controller {
         // std::cout << "piece_mobility_score: " << piece_mobility_score << std::endl;
 
         start                = std::chrono::high_resolution_clock::now();
-        float castling_score = compute_castling_bonus( game, white );
+        float castling_score = compute_castling_bonus( game_copy, white );
         end                  = std::chrono::high_resolution_clock::now();
         duration             = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += castling_score * chromosome.castling_bonus;
@@ -783,7 +872,7 @@ namespace chess::controller {
         // std::cout << "castling_score: " << castling_score << std::endl;
 
         start                         = std::chrono::high_resolution_clock::now();
-        float development_speed_score = compute_development_speed( game, white );
+        float development_speed_score = compute_development_speed( game_copy, white );
         end                           = std::chrono::high_resolution_clock::now();
         duration                      = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += development_speed_score * chromosome.development_speed_bonus;
@@ -791,7 +880,7 @@ namespace chess::controller {
         // std::cout << "development_speed_score: " << development_speed_score << std::endl;
 
         start                    = std::chrono::high_resolution_clock::now();
-        float doubled_pawn_score = compute_doubled_pawn_score( game, white );
+        float doubled_pawn_score = compute_doubled_pawn_score( game_copy, white );
         end                      = std::chrono::high_resolution_clock::now();
         duration                 = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += doubled_pawn_score * chromosome.doubled_pawn_penalty;
@@ -799,7 +888,7 @@ namespace chess::controller {
         // std::cout << "doubled_pawn_score: " << doubled_pawn_score << std::endl;
 
         start                     = std::chrono::high_resolution_clock::now();
-        float isolated_pawn_score = compute_isolated_pawn_score( game, white );
+        float isolated_pawn_score = compute_isolated_pawn_score( game_copy, white );
         end                       = std::chrono::high_resolution_clock::now();
         duration                  = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += isolated_pawn_score * chromosome.isolated_pawn_penalty;
@@ -807,7 +896,7 @@ namespace chess::controller {
         // std::cout << "isolated_pawn_score: " << isolated_pawn_score << std::endl;
 
         start                      = std::chrono::high_resolution_clock::now();
-        float connected_pawn_score = compute_connected_pawn_score( game, white );
+        float connected_pawn_score = compute_connected_pawn_score( game_copy, white );
         end                        = std::chrono::high_resolution_clock::now();
         duration                   = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += connected_pawn_score * chromosome.connected_pawn_bonus;
@@ -815,7 +904,7 @@ namespace chess::controller {
         // std::cout << "connected_pawn_score: " << connected_pawn_score << std::endl;
 
         start                   = std::chrono::high_resolution_clock::now();
-        float passed_pawn_score = compute_passed_pawn_score( game, white );
+        float passed_pawn_score = compute_passed_pawn_score( game_copy, white );
         end                     = std::chrono::high_resolution_clock::now();
         duration                = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += passed_pawn_score * chromosome.passed_pawn_bonus;
@@ -823,7 +912,7 @@ namespace chess::controller {
         // std::cout << "passed_pawn_score: " << passed_pawn_score << std::endl;
 
         start                           = std::chrono::high_resolution_clock::now();
-        float enemy_king_pressure_score = compute_king_pressure_score( game, not white );
+        float enemy_king_pressure_score = compute_king_pressure_score( game_copy, not white );
         end                             = std::chrono::high_resolution_clock::now();
         duration                        = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += enemy_king_pressure_score * chromosome.enemy_king_pressure_bonus;
@@ -831,7 +920,7 @@ namespace chess::controller {
         // std::cout << "enemy_king_pressure_score: " << enemy_king_pressure_score << std::endl;
 
         start                     = std::chrono::high_resolution_clock::now();
-        float piece_defense_score = compute_piece_defense_score( game, white );
+        float piece_defense_score = compute_piece_defense_score( game_copy, white );
         end                       = std::chrono::high_resolution_clock::now();
         duration                  = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += piece_defense_score * chromosome.piece_defense_bonus;
@@ -839,7 +928,7 @@ namespace chess::controller {
         // std::cout << "piece_defense_score: " << piece_defense_score << std::endl;
 
         start                   = std::chrono::high_resolution_clock::now();
-        float bishop_pair_score = compute_bishop_pair_score( game, white );
+        float bishop_pair_score = compute_bishop_pair_score( game_copy, white );
         end                     = std::chrono::high_resolution_clock::now();
         duration                = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += bishop_pair_score * chromosome.bishop_pair_bonus;
@@ -847,7 +936,7 @@ namespace chess::controller {
         // std::cout << "bishop_pair_score: " << bishop_pair_score << std::endl;
 
         start                       = std::chrono::high_resolution_clock::now();
-        float connected_rooks_score = compute_connected_rooks_score( game, white );
+        float connected_rooks_score = compute_connected_rooks_score( game_copy, white );
         end                         = std::chrono::high_resolution_clock::now();
         duration                    = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += connected_rooks_score * chromosome.connected_rooks_bonus;
@@ -855,7 +944,7 @@ namespace chess::controller {
         // std::cout << "connected_rooks_score: " << connected_rooks_score << std::endl;
 
         start                           = std::chrono::high_resolution_clock::now();
-        float king_centralization_score = compute_king_centralization_score( game, white );
+        float king_centralization_score = compute_king_centralization_score( game_copy, white );
         end                             = std::chrono::high_resolution_clock::now();
         duration                        = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += king_centralization_score * chromosome.king_centralization_val;
@@ -863,7 +952,7 @@ namespace chess::controller {
         // std::cout << "king_centralization_score: " << king_centralization_score << std::endl;
 
         start                      = std::chrono::high_resolution_clock::now();
-        float knight_outpost_score = compute_knight_outpost_score( game, white );
+        float knight_outpost_score = compute_knight_outpost_score( game_copy, white );
         end                        = std::chrono::high_resolution_clock::now();
         duration                   = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += knight_outpost_score * chromosome.knight_outpost_bonus;
@@ -871,7 +960,7 @@ namespace chess::controller {
         // std::cout << "knight_outpost_score: " << knight_outpost_score << std::endl;
 
         start                     = std::chrono::high_resolution_clock::now();
-        float blocked_piece_score = compute_blocked_piece_score( game, white );
+        float blocked_piece_score = compute_blocked_piece_score( game_copy, white );
         end                       = std::chrono::high_resolution_clock::now();
         duration                  = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += blocked_piece_score * chromosome.blocked_piece_penalty;
@@ -879,7 +968,7 @@ namespace chess::controller {
         // std::cout << "blocked_piece_score: " << blocked_piece_score << std::endl;
 
         start                     = std::chrono::high_resolution_clock::now();
-        float space_control_score = compute_space_control_score( game, white );
+        float space_control_score = compute_space_control_score( game_copy, white );
         end                       = std::chrono::high_resolution_clock::now();
         duration                  = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += space_control_score * chromosome.space_control_in_opponent_half_bonus;
@@ -887,7 +976,7 @@ namespace chess::controller {
         // std::cout << "space_control_score: " << space_control_score << std::endl;
 
         start                   = std::chrono::high_resolution_clock::now();
-        float king_shield_score = compute_king_shield_score( game, white );
+        float king_shield_score = compute_king_shield_score( game_copy, white );
         end                     = std::chrono::high_resolution_clock::now();
         duration                = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += king_shield_score * chromosome.king_shield_bonus;
@@ -895,7 +984,7 @@ namespace chess::controller {
         // std::cout << "king_shield_score: " << king_shield_score << std::endl;
 
         start                     = std::chrono::high_resolution_clock::now();
-        float king_pressure_score = -compute_king_pressure_score( game, white );
+        float king_pressure_score = -compute_king_pressure_score( game_copy, white );
         end                       = std::chrono::high_resolution_clock::now();
         duration                  = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         score += king_pressure_score * chromosome.king_pressure_penalty;
@@ -903,7 +992,7 @@ namespace chess::controller {
         // std::cout << "king_pressure_score: " << king_pressure_score << std::endl;
 
         start                 = std::chrono::high_resolution_clock::now();
-        float position_scores = position_score( game );
+        float position_scores = position_score( game_copy );
         // std::cout << "position_scores: " << position_scores;
         end      = std::chrono::high_resolution_clock::now();
         duration = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
@@ -998,6 +1087,7 @@ namespace chess::controller {
                 }
             }
         }
+        auto m = best_move.value();
 
         return best_move.value();
     }
@@ -1005,10 +1095,6 @@ namespace chess::controller {
     void ai_controller::play()
     {
         using namespace std::chrono_literals;
-
-        game.update_attack_map();
-        std::cout << "init";
-        exit( 1 );
 
         while ( !should_close ) {
             std::cout << "AI Online\n";
@@ -1028,6 +1114,7 @@ namespace chess::controller {
                       << to_string( selected_move.second.position() ) << "\n";
 
             select_space( selected_move.first.position() );
+
             if ( move( selected_move.second ) != pieces::move_status::valid ) {
                 std::cout << "Error: AI Selected Invalid move_t, AI Offline\n";
                 return;
