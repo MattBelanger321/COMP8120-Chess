@@ -5,8 +5,6 @@ stb/cci.20240531
 nlohmann_json/3.11.0
 
 [generators]
-cmake_paths
-CMakeDeps
 CMakeToolchain
 
 [imports]
