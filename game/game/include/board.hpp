@@ -31,9 +31,37 @@ namespace chess::game {
         void filter_queen_moves( space const & current, std::vector< space > & moves ) const;
         void filter_king_moves( space const & current, std::vector< space > & moves ) const;
 
+        // Parse the entire board string
+        void parse_board_string( const std::string & board_string );
+
+        // Parse a single rank line
+        void parse_rank_line( const std::string & line, int rank );
+
+        // Find the first '|' separator after rank number
+        size_t find_first_separator( const std::string & line, int rank );
+
+        // Extract symbol at current position
+        char extract_symbol_at_position( const std::string & line, size_t pos, int rank, int file );
+
+        // Find next '|' separator
+        size_t find_next_separator( const std::string & line, size_t current_pos, int file );
+
+        // Process a single board symbol (piece or empty space)
+        void process_board_symbol( char symbol, int rank, int file );
+
+        // Check if symbol represents empty space
+        bool is_empty_space( char symbol );
+
+        // Create piece from symbol and place it on board
+        void create_piece_from_symbol( char symbol, pieces::rank_t rank, pieces::file_t file );
+
     public:
         // empty is set if there should be no pieces put on the board
         board( bool const empty = false );
+        // contstruct board from frozen string encoding
+        board( const std::string & board_string );
+
+        void load_from_string( std::string const board_string );
 
         std::vector< space > possible_moves( space const & src ) const;
 

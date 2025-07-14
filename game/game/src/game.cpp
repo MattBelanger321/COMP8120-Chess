@@ -21,6 +21,18 @@ namespace chess {
         start();
     }
 
+    chess_game::chess_game( std::string const board_state ) :
+        game_board(),
+        white_king( *reinterpret_cast< pieces::king * >(
+            game_board.get( pieces::piece::itopos( 1, 5 ).value() ).piece.get() ) ),
+        black_king(
+            *reinterpret_cast< pieces::king * >( game_board.get( pieces::piece::itopos( 8, 5 ).value() ).piece.get() ) )
+    {
+        load_from_string( board_state );
+    }
+
+    void chess_game::load_from_string( std::string const state ) { game_board.load_from_string( state ); }
+
     void chess_game::start()
     {
         state = game_state::white_move;

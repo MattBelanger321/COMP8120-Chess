@@ -36,6 +36,122 @@ namespace chess::game {
             place_pieces();
     }
 
+    board::board( const std::string & board_string ) { load_from_string( board_string ); }
+
+    void board::load_from_string( std::string const state )
+    {
+        reset( true );
+        parse_board_string( state );
+    }
+
+    // Parse the entire board string
+    void board::parse_board_string( const std::string & board_string )
+    {
+        std::istringstream iss( board_string );
+        std::string        line;
+
+        for ( int rank = 8; rank >= 1; rank-- ) {
+            if ( !std::getline( iss, line ) ) {
+                throw std::invalid_argument( "Invalid board string format: missing rank " + std::to_string( rank ) );
+            }
+            parse_rank_line( line, rank );
+        }
+    }
+
+    // Parse a single rank line
+    void board::parse_rank_line( const std::string & line, int rank )
+    {
+        size_t pos = find_first_separator( line, rank );
+
+        for ( int file = 1; file <= 8; file++ ) {
+            char symbol = extract_symbol_at_position( line, pos, rank, file );
+            process_board_symbol( symbol, rank, file );
+            pos = find_next_separator( line, pos, file );
+        }
+    }
+
+    // Find the first '|' separator after rank number
+    size_t board::find_first_separator( const std::string & line, int rank )
+    {
+        size_t pos = line.find( '|' );
+        if ( pos == std::string::npos ) {
+            throw std::invalid_argument( "Invalid board string format: missing separator for rank " +
+                                         std::to_string( rank ) );
+        }
+        return pos;
+    }
+
+    // Extract symbol at current position
+    char board::extract_symbol_at_position( const std::string & line, size_t pos, int rank, int file )
+    {
+        pos++;  // Move past the '|'
+        if ( pos >= line.length() ) {
+            throw std::invalid_argument( "Invalid board string format: missing data for rank " +
+                                         std::to_string( rank ) + " file " + std::to_string( file ) );
+        }
+        return line[pos];
+    }
+
+    // Find next '|' separator
+    size_t board::find_next_separator( const std::string & line, size_t current_pos, int file )
+    {
+        size_t pos = line.find( '|', current_pos + 1 );
+        if ( pos == std::string::npos && file < 8 ) {
+            throw std::invalid_argument( "Invalid board string format: missing separator after file " +
+                                         std::to_string( file ) );
+        }
+        return pos;
+    }
+
+    // Process a single board symbol (piece or empty space)
+    void board::process_board_symbol( char symbol, int rank, int file )
+    {
+        auto rank_enum = static_cast< pieces::rank_t >( rank );
+        auto file_enum = static_cast< pieces::file_t >( file );
+
+        if ( is_empty_space( symbol ) ) {
+            // Empty space - piece is already nullptr from reset
+            return;
+        }
+
+        create_piece_from_symbol( symbol, rank_enum, file_enum );
+    }
+
+    // Check if symbol represents empty space
+    bool board::is_empty_space( char symbol ) { return symbol == '0' || symbol == '1'; }
+
+    // Create piece from symbol and place it on board
+    void board::create_piece_from_symbol( char symbol, pieces::rank_t rank, pieces::file_t file )
+    {
+        bool piece_colour = std::isupper( symbol );  // uppercase = true, lowercase = false
+        char piece_type   = std::tolower( symbol );  // normalize to lowercase
+
+        space & current_space = game_board.at( rank ).at( file );
+
+        switch ( piece_type ) {
+        case 'r':
+            current_space.piece = std::make_unique< pieces::rook >( piece_colour, rank, file );
+            break;
+        case 'n':
+            current_space.piece = std::make_unique< pieces::knight >( piece_colour, rank, file );
+            break;
+        case 'b':
+            current_space.piece = std::make_unique< pieces::bishop >( piece_colour, rank, file );
+            break;
+        case 'q':
+            current_space.piece = std::make_unique< pieces::queen >( piece_colour, rank, file );
+            break;
+        case 'k':
+            current_space.piece = std::make_unique< pieces::king >( piece_colour, rank, file );
+            break;
+        case 'p':
+            current_space.piece = std::make_unique< pieces::pawn >( piece_colour, rank, file );
+            break;
+        default:
+            throw std::invalid_argument( "Invalid piece symbol: " + std::string( 1, symbol ) );
+        }
+    }
+
     pieces::move_status board::move_force( pieces::position_t const & src, pieces::position_t const & dst )
     {
         if ( !game_board.at( src.first ).at( src.second ).piece )

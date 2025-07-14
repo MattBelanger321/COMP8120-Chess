@@ -76,6 +76,8 @@ namespace chess {
 
     public:
         chess_game();
+        chess_game( std::string const board_state );
+        void load_from_string( std::string const state );
 
         pieces::move_status move( game::space const & src, game::space const & dst );
 
