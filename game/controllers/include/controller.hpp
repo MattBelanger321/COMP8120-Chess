@@ -18,7 +18,7 @@ namespace chess::controller {
 
     protected:
         controller() {}
-        controller( std::string const board_state )
+        controller( std::string const & board_state )
         {
             std::lock_guard guard( game_mutex );
             game.load_from_string( board_state );

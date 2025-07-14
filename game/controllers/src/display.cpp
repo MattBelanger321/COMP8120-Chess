@@ -29,7 +29,7 @@ namespace chess::controller {
     }
 
     display::display( component_data const board_dims, component_data const status_dims,
-                      component_data const control_dims, std::string const board_state ) :
+                      component_data const control_dims, std::string const & board_state ) :
         controller( board_state ),
         board_dims( board_dims ),
         status_dims( status_dims ),

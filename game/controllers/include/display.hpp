@@ -30,7 +30,7 @@ namespace chess::controller {
     public:
         display( component_data const board_dims, component_data const status_dims, component_data const control_dims );
         display( component_data const board_dims, component_data const status_dims, component_data const control_dims,
-                 std::string const board_state );
+                 std::string const & board_state );
 
         void render();
 

@@ -38,7 +38,7 @@ namespace chess::game {
 
     board::board( const std::string & board_string ) { load_from_string( board_string ); }
 
-    void board::load_from_string( std::string const state )
+    void board::load_from_string( std::string const & state )
     {
         reset( true );
         parse_board_string( state );

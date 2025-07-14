@@ -61,7 +61,7 @@ namespace chess::game {
         // contstruct board from frozen string encoding
         board( const std::string & board_string );
 
-        void load_from_string( std::string const board_string );
+        void load_from_string( std::string const & board_string );
 
         std::vector< space > possible_moves( space const & src ) const;
 
