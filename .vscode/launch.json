@@ -1,25 +1,44 @@
 {
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"name": "Debug Current CMake Target",
-			"type": "cppdbg",
-			"request": "launch",
-			"program": "${command:cmake.launchTargetPath}",
-			"args": [],
-			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}",
-			"environment": [],
-			"externalConsole": false,
-			"MIMode": "gdb",
-			"miDebuggerPath": "/usr/bin/gdb", // Change this if gdb is in a different location
-			"setupCommands": [
-				{
-					"description": "Enable pretty-printing for gdb",
-					"text": "-enable-pretty-printing",
-					"ignoreFailures": true
-				}
-			]
-		}
-	]
-}
+	{
+		// Use IntelliSense to learn about possible attributes.
+		// Hover to view descriptions of existing attributes.
+		// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "(gdb) Launch (Linux)",
+				"type": "cppdbg",
+				"program": "${command:cmake.launchTargetPath}",
+				"request": "launch",
+				"externalConsole": false,
+				"miDebuggerPath": "${workspaceFolder}/sudo_gbd.sh",
+				"MIMode": "gdb",
+				"cwd": "${workspaceFolder}/build"
+			},
+			{
+				"name": "(gdb) Launch Windows",
+				"type": "cppvsdbg",
+				"request": "launch",
+				// Resolved by CMake Tools:
+				"program": "${command:cmake.launchTargetPath}",
+				"args": [
+					"C:\\Users\\Administrator\\Desktop\\BScanArray2-preprocessed.csv"
+				],
+				"stopAtEntry": false,
+				"cwd": "${workspaceFolder}/build",
+				"environment": [
+					{
+						// add the directory where our target was built to the PATHs
+						// it gets resolved by CMake Tools:
+						"name": "PATH",
+						"value": "$PATH:${command:cmake.launchTargetDirectory}"
+					},
+					{
+						"name": "OTHER_VALUE",
+						"value": "Something something"
+					}
+				],
+				"console": "externalTerminal"
+			},
+		]
+	}

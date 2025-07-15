@@ -30,7 +30,6 @@ namespace chess::pieces {
                 moves.push_back( *pos );
             }
         }
-
         return moves;
     }
 
