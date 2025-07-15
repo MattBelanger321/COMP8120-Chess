@@ -74,6 +74,24 @@ namespace chess {
         bool queen_side_castle_white;
         bool queen_side_castle_black;
 
+        // Extract the board portion from the game string
+        std::string extract_board_portion( const std::string & game_string );
+
+        // Parse the metadata section
+        void parse_metadata_section( const std::string & game_string );
+
+        // Parse individual metadata lines
+        void parse_metadata_line( const std::string & line );
+
+        // Parse game state from line
+        void parse_game_state( const std::string & line );
+
+        // Parse castle right from line
+        bool parse_castle_right( const std::string & line );
+
+        // Convert string to game_state enum
+        game_state parse_game_state_enum( const std::string & state_str );
+
     public:
         struct color_attack_map {
             int                               num_attackers;
@@ -100,6 +118,8 @@ namespace chess {
         attack_map game_attack_map;
 
         chess_game();
+        chess_game( std::string const & board_state );
+        void load_from_string( std::string const & state );
 
         pieces::move_status move( game::space const & src, game::space const & dst );
 

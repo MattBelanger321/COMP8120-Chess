@@ -1,3 +1,4 @@
+#include "controller.hpp"
 #include <display.hpp>
 #include <imgui.h>
 #include <iostream>
@@ -13,6 +14,23 @@ namespace chess::controller {
 
     display::display( component_data const board_dims, component_data const status_dims,
                       component_data const control_dims ) :
+        board_dims( board_dims ),
+        status_dims( status_dims ),
+        control_dims( control_dims ),
+        board(
+            board_dims.size.width * .975f, board_dims.size.height * .975f,  //
+            [this]( int i, int j ) -> space_context_t const {               //
+                return this->get( i, j );
+            },
+            [this]( game::space const & sp ) {  //
+                on_select( sp );
+            } )
+    {
+    }
+
+    display::display( component_data const board_dims, component_data const status_dims,
+                      component_data const control_dims, std::string const & board_state ) :
+        controller( board_state ),
         board_dims( board_dims ),
         status_dims( status_dims ),
         control_dims( control_dims ),

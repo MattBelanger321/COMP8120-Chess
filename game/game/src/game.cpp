@@ -125,6 +125,16 @@ namespace chess {
         start();
     }
 
+    chess_game::chess_game( std::string const & board_state ) :
+        game_board(),
+        white_king( *reinterpret_cast< pieces::king * >(
+            game_board.get( pieces::piece::itopos( 1, 5 ).value() ).piece.get() ) ),
+        black_king(
+            *reinterpret_cast< pieces::king * >( game_board.get( pieces::piece::itopos( 8, 5 ).value() ).piece.get() ) )
+    {
+        load_from_string( board_state );
+    }
+
     void chess_game::start()
     {
         state = game_state::white_move;
@@ -334,7 +344,153 @@ namespace chess {
 
     game::space const & chess_game::get( pieces::position_t const & pos ) const { return game_board.get( pos ); }
 
-    std::string chess_game::to_string() const { return game_board.to_string(); }
+    void chess_game::load_from_string( const std::string & game_string )
+    {
+        std::istringstream iss( game_string );
+        std::string        line;
+
+        // Extract board portion (everything before metadata section)
+        std::string board_portion = extract_board_portion( game_string );
+
+        // Load the board using the board class function
+        game_board.load_from_string( board_portion );
+
+        // Parse metadata section
+        parse_metadata_section( game_string );
+    }
+
+    // Extract the board portion from the game string
+    std::string chess_game::extract_board_portion( const std::string & game_string )
+    {
+        size_t metadata_pos = game_string.find( "--- Game Metadata ---" );
+        if ( metadata_pos == std::string::npos ) {
+            throw std::invalid_argument( "Invalid game string format: missing metadata section" );
+        }
+
+        return game_string.substr( 0, metadata_pos );
+    }
+
+    // Parse the metadata section
+    void chess_game::parse_metadata_section( const std::string & game_string )
+    {
+        size_t metadata_pos = game_string.find( "--- Game Metadata ---" );
+        if ( metadata_pos == std::string::npos ) {
+            throw std::invalid_argument( "Invalid game string format: missing metadata section" );
+        }
+
+        std::string        metadata_section = game_string.substr( metadata_pos );
+        std::istringstream iss( metadata_section );
+        std::string        line;
+
+        // Skip the header line
+        std::getline( iss, line );
+
+        while ( std::getline( iss, line ) ) {
+            parse_metadata_line( line );
+        }
+    }
+
+    // Parse individual metadata lines
+    void chess_game::parse_metadata_line( const std::string & line )
+    {
+        if ( line.empty() )
+            return;
+
+        if ( line.find( "State:" ) == 0 ) {
+            parse_game_state( line );
+        }
+        else if ( line.find( "  White King-side:" ) == 0 ) {
+            king_side_castle_white = parse_castle_right( line );
+        }
+        else if ( line.find( "  White Queen-side:" ) == 0 ) {
+            queen_side_castle_white = parse_castle_right( line );
+        }
+        else if ( line.find( "  Black King-side:" ) == 0 ) {
+            king_side_castle_black = parse_castle_right( line );
+        }
+        else if ( line.find( "  Black Queen-side:" ) == 0 ) {
+            queen_side_castle_black = parse_castle_right( line );
+        }
+        // Skip "Castling Rights:" header line
+    }
+
+    // Parse game state from line
+    void chess_game::parse_game_state( const std::string & line )
+    {
+        size_t colon_pos = line.find( ':' );
+        if ( colon_pos == std::string::npos ) {
+            throw std::invalid_argument( "Invalid state line format: " + line );
+        }
+
+        std::string state_str = line.substr( colon_pos + 1 );
+        // Remove leading/trailing whitespace
+        state_str.erase( 0, state_str.find_first_not_of( " \t" ) );
+        state_str.erase( state_str.find_last_not_of( " \t" ) + 1 );
+
+        // Assuming game_state has a from_string method or constructor
+        // If not, you'll need to implement the conversion based on your enum
+        state = parse_game_state_enum( state_str );
+    }
+
+    // Parse castle right from line
+    bool chess_game::parse_castle_right( const std::string & line )
+    {
+        return line.find( "Available" ) != std::string::npos;
+    }
+
+    // Convert string to game_state enum
+    game_state chess_game::parse_game_state_enum( const std::string & state_str )
+    {
+        if ( state_str == "White to move" )
+            return game_state::white_move;
+        if ( state_str == "Black to move" )
+            return game_state::black_move;
+        if ( state_str == "White is in check" )
+            return game_state::white_check;
+        if ( state_str == "Black is in check" )
+            return game_state::black_check;
+        if ( state_str == "White wins" )
+            return game_state::white_wins;
+        if ( state_str == "Black wins" )
+            return game_state::black_wins;
+        if ( state_str == "White offers a draw" )
+            return game_state::white_offers_draw;
+        if ( state_str == "Black offers a draw" )
+            return game_state::black_offers_draw;
+        if ( state_str == "White resigns" )
+            return game_state::white_resigns;
+        if ( state_str == "Black resigns" )
+            return game_state::black_resigns;
+        if ( state_str == "Game is a draw" )
+            return game_state::draw;
+        if ( state_str == "Invalid game state" )
+            return game_state::invalid_game_state;
+
+        throw std::invalid_argument( "Unknown game state: " + state_str );
+    }
+
+    std::string chess_game::to_string() const
+    {
+        std::stringstream output;
+
+        // Add the board representation
+        output << game_board.to_string();
+
+        // Add metadata section
+        output << "\n--- Game Metadata ---\n";
+
+        // Game state
+        output << "State: " << chess::to_string( state ) << "\n";
+
+        // Castling rights
+        output << "Castling Rights:\n";
+        output << "  White King-side:  " << ( king_side_castle_white ? "Available" : "Lost" ) << "\n";
+        output << "  White Queen-side: " << ( queen_side_castle_white ? "Available" : "Lost" ) << "\n";
+        output << "  Black King-side:  " << ( king_side_castle_black ? "Available" : "Lost" ) << "\n";
+        output << "  Black Queen-side: " << ( queen_side_castle_black ? "Available" : "Lost" ) << "\n";
+
+        return output.str();
+    }
 
     void chess_game::update_attack_map()
     {
