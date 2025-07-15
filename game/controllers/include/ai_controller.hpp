@@ -10,8 +10,10 @@
 #include <controller.hpp>
 
 #include <iostream>
+#include <random>
 #include <string>
 #include <thread>
+#include <unordered_map>
 
 namespace chess::controller {
     struct chromosome_t {
@@ -114,29 +116,61 @@ namespace chess::controller {
     class ai_controller : public controller {
     private:
         chromosome_t chromosome;
+        struct zobrist_t {
+            uint64_t piece_square[12][64];
+            uint64_t castling_availability[4];
+            uint64_t white_to_move;
+
+            zobrist_t()
+            {
+                std::mt19937_64                           rng( 20250517 );
+                std::uniform_int_distribution< uint64_t > distribution;
+
+                for ( int i = 0; i < 12; i++ ) {
+                    for ( int j = 0; j < 64; j++ ) {
+                        piece_square[i][j] = distribution( rng );
+                    }
+                }
+
+                for ( int i = 0; i < 4; i++ ) {
+                    castling_availability[i] = distribution( rng );
+                }
+
+                white_to_move = distribution( rng );
+            }
+        };
+        zobrist_t zobrist_hash;
+
+        struct cache_entry {
+            float score;
+            int   depth;
+        };
+
+        mutable std::unordered_map< uint64_t, cache_entry > position_cache;
 
         bool        should_close;
         std::thread runner;
 
         void play();
 
-        float compute_material_score( const chess_game & game, const bool white ) const;
-        float compute_piece_mobility( const chess_game & game, const bool white ) const;
-        float compute_castling_bonus( const chess_game & game, const bool white ) const;
-        float compute_development_speed( const chess_game & game, const bool white ) const;
-        float compute_doubled_pawn_score( const chess_game & game, const bool white ) const;
-        float compute_isolated_pawn_score( const chess_game & game, const bool white ) const;
-        float compute_connected_pawn_score( const chess_game & game, const bool white ) const;
-        float compute_passed_pawn_score( const chess_game & game, const bool white ) const;
-        float compute_king_pressure_score( const chess_game & game, const bool white ) const;
-        float compute_piece_defense_score( const chess_game & game, const bool white ) const;
-        float compute_bishop_pair_score( const chess_game & game, const bool white ) const;
-        float compute_connected_rooks_score( const chess_game & game, const bool white ) const;
-        float compute_king_centralization_score( const chess_game & game, const bool white ) const;
-        float compute_knight_outpost_score( const chess_game & game, const bool white ) const;
-        float compute_blocked_piece_score( const chess_game & game, const bool white ) const;
-        float compute_space_control_score( const chess_game & game, const bool white ) const;
-        float compute_king_shield_score( const chess_game & game, const bool white ) const;
+        uint64_t compute_zobrist_hash( const game::board & b ) const;
+        float    compute_material_score( const chess_game & game, const bool white ) const;
+        float    compute_piece_mobility( const chess_game & game, const bool white ) const;
+        float    compute_castling_bonus( const chess_game & game, const bool white ) const;
+        float    compute_development_speed( const chess_game & game, const bool white ) const;
+        float    compute_doubled_pawn_score( const chess_game & game, const bool white ) const;
+        float    compute_isolated_pawn_score( const chess_game & game, const bool white ) const;
+        float    compute_connected_pawn_score( const chess_game & game, const bool white ) const;
+        float    compute_passed_pawn_score( const chess_game & game, const bool white ) const;
+        float    compute_king_pressure_score( const chess_game & game, const bool white ) const;
+        float    compute_piece_defense_score( const chess_game & game, const bool white ) const;
+        float    compute_bishop_pair_score( const chess_game & game, const bool white ) const;
+        float    compute_connected_rooks_score( const chess_game & game, const bool white ) const;
+        float    compute_king_centralization_score( const chess_game & game, const bool white ) const;
+        float    compute_knight_outpost_score( const chess_game & game, const bool white ) const;
+        float    compute_blocked_piece_score( const chess_game & game, const bool white ) const;
+        float    compute_space_control_score( const chess_game & game, const bool white ) const;
+        float    compute_king_shield_score( const chess_game & game, const bool white ) const;
 
         float  move_score( const chess_game & game, const move_t move ) const;
         float  order_moves( const chess_game & game ) const;

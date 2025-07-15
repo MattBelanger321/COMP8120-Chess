@@ -68,12 +68,6 @@ namespace chess {
         void black_castling_rights( std::unique_ptr< pieces::piece > const & moved_piece,
                                     pieces::position_t const &               src_pos );
 
-        // set if the king or rook has not moved yet
-        bool king_side_castle_white;
-        bool king_side_castle_black;
-        bool queen_side_castle_white;
-        bool queen_side_castle_black;
-
         // Extract the board portion from the game string
         std::string extract_board_portion( const std::string & game_string );
 
@@ -116,6 +110,12 @@ namespace chess {
         };
 
         attack_map game_attack_map;
+
+        // set if the king or rook has not moved yet
+        bool king_side_castle_white;
+        bool king_side_castle_black;
+        bool queen_side_castle_white;
+        bool queen_side_castle_black;
 
         chess_game();
         chess_game( std::string const & board_state );
