@@ -4,7 +4,6 @@ project(client LANGUAGES CXX)
 
 find_package(ixwebsocket REQUIRED)
 
-
 add_library(${PROJECT_NAME}
 	include/client.hpp
 	src/client.cpp
@@ -21,4 +20,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 
-target_link_libraries(${PROJCET_NAME} ixwebsocket::ixwebsocket)
+target_link_libraries(${PROJECT_NAME}
+	PUBLIC
+	ixwebsocket::ixwebsocket
+)
