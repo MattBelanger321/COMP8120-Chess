@@ -105,7 +105,6 @@ namespace chess::game {
                 return pieces::move_status::valid;
             }
         }
-
         move_history.push_back( pieces::to_string( src ) + pieces::to_string( dst ) );
         return pieces::move_status::valid;
     }
@@ -463,18 +462,18 @@ namespace chess::game {
         int rank = static_cast< int >( current.position().first );
         int file = static_cast< int >( current.position().second );
         if ( current.piece->colour() ) {
-            if ( file - 1 >= 1 ) {
+            if ( rank < 8 && file - 1 >= 1 ) {
                 moves.push_back( pieces::piece::itopos( rank + 1, file - 1 ).value() );
             }
-            if ( file + 1 <= 8 ) {
+            if ( rank < 8 && file + 1 <= 8 ) {
                 moves.push_back( pieces::piece::itopos( rank + 1, file + 1 ).value() );
             }
         }
         else {
-            if ( file - 1 >= 1 ) {
+            if ( rank > 1 && file - 1 >= 1 ) {
                 moves.push_back( pieces::piece::itopos( rank - 1, file - 1 ).value() );
             }
-            if ( file + 1 <= 8 ) {
+            if ( rank > 1 && file + 1 <= 8 ) {
                 moves.push_back( pieces::piece::itopos( rank - 1, file + 1 ).value() );
             }
         }
@@ -649,17 +648,7 @@ namespace chess::game {
 
     std::vector< pieces::position_t > board::possible_attacks( space const & src ) const
     {
-        // auto positions = src.possible_moves();  //
-
-        // if ( positions.empty() ) {
-        //     return {};
-        // }
-
         std::vector< pieces::position_t > positions;
-
-        // for ( auto const & pos : positions ) {
-        //     spaces.push_back( game_board.at( pos.first ).at( pos.second ) );
-        // }
 
         switch ( src.piece->type() ) {
         case pieces::name_t::rook:
@@ -867,7 +856,7 @@ namespace chess::game {
             }
         }
 
-        return false;  //
+        return false;
     }
 
 }  // namespace chess::game

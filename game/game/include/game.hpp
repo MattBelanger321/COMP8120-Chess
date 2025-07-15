@@ -79,122 +79,22 @@ namespace chess {
             int                               num_attackers;
             std::vector< pieces::position_t > attacker_spaces;
 
-            void clear()
-            {
-                num_attackers = 0;
-                attacker_spaces.clear();
-            }
-
-            void add_attacker( pieces::position_t attacker )
-            {
-                num_attackers++;
-                attacker_spaces.push_back( attacker );
-            }
-
-            void remove_attacker( pieces::position_t attacker )
-            {
-                num_attackers--;
-                std::erase( attacker_spaces, attacker );
-            }
-
-            std::string to_string() const { return std::to_string( num_attackers ); }
+            void        clear();
+            void        add_attacker( pieces::position_t attacker );
+            void        remove_attacker( pieces::position_t attacker );
+            std::string to_string() const;
         };
 
         struct attack_map {
             color_attack_map white_attack_map[8][8];
             color_attack_map black_attack_map[8][8];
 
-            void clear()
-            {
-                for ( int i = 0; i < 8; i++ ) {
-                    for ( int j = 0; j < 8; j++ ) {
-                        white_attack_map[i][j].clear();
-                        black_attack_map[i][j].clear();
-                    }
-                }
-            }
-
-            void add_attacker( game::space attacker, pieces::position_t position_attacked )
-            {
-                if ( !attacker.piece ) {
-                    return;
-                }
-
-                int rank = static_cast< int >( position_attacked.first );
-                int file = static_cast< int >( position_attacked.second );
-
-                if ( attacker.piece->colour() ) {
-                    white_attack_map[rank - 1][file - 1].add_attacker( position_attacked );
-                }
-                else {
-                    black_attack_map[rank - 1][file - 1].add_attacker( position_attacked );
-                }
-            }
-
-            void remove_attacker( game::space attacker, pieces::position_t position_attacked )
-            {
-                if ( !attacker.piece ) {
-                    return;
-                }
-
-                int rank = static_cast< int >( position_attacked.first );
-                int file = static_cast< int >( position_attacked.second );
-
-                if ( attacker.piece->colour() ) {
-                    white_attack_map[rank - 1][file - 1].remove_attacker( position_attacked );
-                }
-                else {
-                    black_attack_map[rank - 1][file - 1].remove_attacker( position_attacked );
-                }
-            }
-
-            int has_attackers( game::space s, bool color ) const
-            {
-                // return num_attackers(s, color) > 0;
-                int rank = static_cast< int >( s.position().first );
-                int file = static_cast< int >( s.position().second );
-
-                if ( color ) {
-                    return white_attack_map[rank - 1][file - 1].num_attackers > 0;
-                }
-                else {
-                    return black_attack_map[rank - 1][file - 1].num_attackers > 0;
-                }
-            }
-
-            int num_attackers( game::space s, bool color ) const
-            {
-                int rank = static_cast< int >( s.position().first );
-                int file = static_cast< int >( s.position().second );
-
-                if ( color ) {
-                    return white_attack_map[rank - 1][file - 1].num_attackers;
-                }
-                else {
-                    return black_attack_map[rank - 1][file - 1].num_attackers;
-                }
-            }
-
-            std::string to_string() const
-            {
-                std::string output = "White Attack Map:\n";
-                for ( int i = 0; i < 8; i++ ) {
-                    for ( int j = 0; j < 8; j++ ) {
-                        output += white_attack_map[7 - i][j].to_string() + " ";
-                    }
-                    output += "\n";
-                }
-                output += "\nBlack Attack Map\n";
-                for ( int i = 0; i < 8; i++ ) {
-                    for ( int j = 0; j < 8; j++ ) {
-                        output += black_attack_map[7 - i][j].to_string() + " ";
-                    }
-                    output += "\n";
-                }
-                output += "\n";
-
-                return output;
-            }
+            void        clear();
+            void        add_attacker( game::space attacker, pieces::position_t position_attacked );
+            void        remove_attacker( game::space attacker, pieces::position_t position_attacked );
+            bool        has_attackers( game::space s, bool color ) const;
+            int         num_attackers( game::space s, bool color ) const;
+            std::string to_string() const;
         };
 
         attack_map game_attack_map;

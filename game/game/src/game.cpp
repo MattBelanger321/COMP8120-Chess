@@ -1,6 +1,5 @@
 #include "space.hpp"
 #include <algorithm>
-#include <array>
 #include <board.hpp>
 #include <cassert>
 #include <chrono>
@@ -12,6 +11,109 @@
 #include <vector>
 
 namespace chess {
+
+    void chess_game::color_attack_map::clear()
+    {
+        num_attackers = 0;
+        attacker_spaces.clear();
+    }
+
+    void chess_game::color_attack_map::add_attacker( pieces::position_t attacker )
+    {
+        num_attackers++;
+        attacker_spaces.push_back( attacker );
+    }
+
+    void chess_game::color_attack_map::remove_attacker( pieces::position_t attacker )
+    {
+        num_attackers--;
+        std::erase( attacker_spaces, attacker );
+    }
+
+    std::string chess_game::color_attack_map::to_string() const { return std::to_string( num_attackers ); }
+
+    void chess_game::attack_map::clear()
+    {
+        for ( int i = 0; i < 8; i++ ) {
+            for ( int j = 0; j < 8; j++ ) {
+                white_attack_map[i][j].clear();
+                black_attack_map[i][j].clear();
+            }
+        }
+    }
+
+    void chess_game::attack_map::add_attacker( game::space attacker, pieces::position_t position_attacked )
+    {
+        if ( !attacker.piece ) {
+            return;
+        }
+
+        int rank = static_cast< int >( position_attacked.first );
+        int file = static_cast< int >( position_attacked.second );
+
+        if ( attacker.piece->colour() ) {
+            white_attack_map[rank - 1][file - 1].add_attacker( position_attacked );
+        }
+        else {
+            black_attack_map[rank - 1][file - 1].add_attacker( position_attacked );
+        }
+    }
+
+    void chess_game::attack_map::remove_attacker( game::space attacker, pieces::position_t position_attacked )
+    {
+        if ( !attacker.piece ) {
+            return;
+        }
+
+        int rank = static_cast< int >( position_attacked.first );
+        int file = static_cast< int >( position_attacked.second );
+
+        if ( attacker.piece->colour() ) {
+            white_attack_map[rank - 1][file - 1].remove_attacker( position_attacked );
+        }
+        else {
+            black_attack_map[rank - 1][file - 1].remove_attacker( position_attacked );
+        }
+    }
+
+    bool chess_game::attack_map::has_attackers( game::space s, bool color ) const
+    {
+        return num_attackers( s, color ) > 0;
+    }
+
+    int chess_game::attack_map::num_attackers( game::space s, bool color ) const
+    {
+        int rank = static_cast< int >( s.position().first );
+        int file = static_cast< int >( s.position().second );
+
+        if ( color ) {
+            return white_attack_map[rank - 1][file - 1].num_attackers;
+        }
+        else {
+            return black_attack_map[rank - 1][file - 1].num_attackers;
+        }
+    }
+
+    std::string chess_game::attack_map::to_string() const
+    {
+        std::string output = "White Attack Map:\n";
+        for ( int i = 0; i < 8; i++ ) {
+            for ( int j = 0; j < 8; j++ ) {
+                output += white_attack_map[7 - i][j].to_string() + " ";
+            }
+            output += "\n";
+        }
+        output += "\nBlack Attack Map\n";
+        for ( int i = 0; i < 8; i++ ) {
+            for ( int j = 0; j < 8; j++ ) {
+                output += black_attack_map[7 - i][j].to_string() + " ";
+            }
+            output += "\n";
+        }
+        output += "\n";
+
+        return output;
+    }
 
     chess_game::chess_game() :
         game_board(),
@@ -44,12 +146,6 @@ namespace chess {
         std::vector< game::space > moves;
         moves.reserve( 64 );
         auto board_copy = game_board;
-        // std::cout << game_attack_map.to_string();
-
-        // auto rook_square = board_copy.get( pieces::piece::itopos( 2, 1 ).value() );
-        // possible_moves( board_copy, rook_square, moves );
-        // std::cout << moves.size();
-        // exit( 1 );
 
         for ( int i = 1; i <= 8; i++ ) {
             for ( int j = 1; j <= 8; j++ ) {
@@ -64,39 +160,6 @@ namespace chess {
         }
 
         std::cout << "game thinks its checkmate\n";
-        // auto board = *this;
-        // auto a     = generate_attack_map( board.game_board );
-        // chess_game::attack_map m;
-        // auto                   queen   = get( pieces::piece::itopos( 7, 6 ).value() );
-        // auto                   attacks = possible_attacks( queen );
-
-        // std::cout << "Queen attacks: ";
-        // for ( auto p : attacks ) {
-        //     std::cout << pieces::to_string( p ) << " ";
-        // }
-        // std::cout << std::endl;
-
-        // chess_game::attack_map a;
-        // a.clear();
-        // std::cout << "queen color: " << ( queen.piece->colour() == true ) << std::endl;
-        // std::cout << "Fresh map:\n";
-        // std::cout << a.to_string();
-        // for ( auto m : attacks ) {
-        //     a.add_attacker( queen, m );
-        // }
-
-        // std::cout << "Post queen only:\n";
-        // std::cout << a.to_string();
-
-        // std::cout << "regular map and board:\n";
-        // std::cout << game_attack_map.to_string();
-        // std::cout << game_board.to_string();
-        // std::cout << a.to_string();
-
-        // auto                       black_king_space = get( pieces::piece::itopos( 8, 5 ).value() );
-        // std::vector< game::space > black_king_moves;
-        // possible_moves( black_king_space, black_king_moves );
-        // std::cout << "king moves: " << black_king_moves.size() << std::endl;
         return true;
     }
 
@@ -152,14 +215,6 @@ namespace chess {
         auto copy_dst = dst.position();
         status        = game_board.move( src.position(), dst.position() );
         update_attack_map();
-        // std::cout << "This one worked\n";
-        // for ( int i = 0; i < 8; i++ ) {
-        //     for ( int j = 0; j < 8; j++ ) {
-        //         std::cout << attack_map[i][j] << " ";
-        //     }
-        //     std::cout << std::endl;
-        // }
-        // std::cout << "-------------------\n";
 
         if ( status != pieces::move_status::valid ) {
             return status;
@@ -285,9 +340,6 @@ namespace chess {
     {
         game_attack_map.clear();
 
-        // std::cout << game_board.to_string();
-        // std::cout << game_attack_map.to_string();
-
         for ( int i = 1; i <= 8; i++ ) {
             for ( int j = 1; j <= 8; j++ ) {
                 auto & space = game_board.get( pieces::piece::itopos( i, j ).value() );
@@ -301,10 +353,6 @@ namespace chess {
                 }
             }
         }
-
-        // std::cout << "After:\n";
-        // std::cout << game_attack_map.to_string();
-        // std::cout << game_board.to_string();
     }
 
     chess_game::attack_map const chess_game::generate_attack_map( game::board board ) const
@@ -319,31 +367,22 @@ namespace chess {
 
         for ( int i = 1; i <= 8; i++ ) {
             for ( int j = 1; j <= 8; j++ ) {
-                std::cout << "before itopos\n";
                 auto & space = board.get( pieces::piece::itopos( i, j ).value() );
 
-                std::cout << "after itopos\n";
                 if ( !space.piece ) {
                     continue;
                 }
 
-                std::cout << "after space.piece\n";
-
                 auto attacks = possible_attacks( board, space );
 
-                std::cout << "start adding attacker to map\n";
                 for ( auto m : attacks ) {
                     generated_map.add_attacker( space, m );
                 }
-                std::cout << "end adding attacker to map\n";
             }
         }
 
         end      = std::chrono::high_resolution_clock::now();
         duration = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
-        // std::cout << "generate attack map took " << duration.count() << " microseconds\n";
-
-        // exit( 1 );
 
         return generated_map;
     }
@@ -363,8 +402,6 @@ namespace chess {
 
         auto piece_attack_squares = b.possible_attacks( src );
 
-        // std::cout << "In possible attacks, size=: " << piece_attack_squares.size() << std::endl;
-
         return piece_attack_squares;
     }
 
@@ -379,7 +416,7 @@ namespace chess {
         auto                  board_copy = game_board;
         std::vector< move_t > moves;
         moves.reserve( 3000 );
-        // std::cout << "legal moves started\n";
+
         for ( int i = 1; i <= 8; i++ ) {
             for ( int j = 1; j <= 8; j++ ) {
                 auto & src = board_copy.get( pieces::piece::itopos( i, j ).value() );
@@ -393,7 +430,6 @@ namespace chess {
                 }
             }
         }
-        // std::cout << "legal moves terminated\n";
         return moves;
     }
     pieces::move_status chess_game::possible_moves( game::space const & src, std::vector< game::space > & moves ) const
@@ -405,12 +441,6 @@ namespace chess {
     pieces::move_status chess_game::possible_moves( game::board board_copy, game::space const & src,
                                                     std::vector< game::space > & possible_moves ) const
     {
-
-        // std::chrono::high_resolution_clock::time_point start, end;
-        // std::chrono::microseconds                      duration;
-
-        // start = std::chrono::high_resolution_clock::now();
-
         if ( !src.piece ) {
             return pieces::move_status::no_piece_to_move;
         }
@@ -427,19 +457,12 @@ namespace chess {
         }
 
         possible_moves = game_board.possible_moves( src );
-        // std::cout << "in possible_moves() move count: " << possible_moves.size() << std::endl;
-        // std::cout << "\t";
-        // for ( auto m : possible_moves )
-        //     std::cout << pieces::to_string( m.position() ) << " ";
-        // std::cout << std::endl;
-        // std::cout << "Initial pawn moves: " << possible_moves.size();
+
         // if applicable add castling logic
         if ( src.piece->type() == pieces::name_t::king ) {
             pieces::position_t king_position = src.piece->position();
             int                king_rank     = static_cast< int >( king_position.first );
             int                king_file     = static_cast< int >( king_position.second );
-
-            // src.piece->colour() ? pieces::rank_t::one : pieces::rank_t::eight;
 
             // King cannot castle if currently in check
             bool king_in_check = game_attack_map.has_attackers( src, !src.piece->colour() );
@@ -542,20 +565,9 @@ namespace chess {
             }
         }
         std::erase_if( possible_moves, [this, &src, &board_copy]( game::space const & dst ) {
-            std::cout << "erase start\n";
             int dst_rank = static_cast< int >( dst.position().first );
             int dst_file = static_cast< int >( dst.position().second );
 
-            // std::cout << "Attack map in erase_if:\n";
-            // for ( int i = 0; i < 8; i++ ) {
-            //     for ( int j = 0; j < 8; j++ ) {
-            //         std::cout << attack_map[i][j] << " ";
-            //     }
-            //     std::cout << std::endl;
-            // }
-            // std::cout << "---------------------------\n";
-            // std::cout << "--------------\n";
-            // std::cout << "\niterating through: " << pieces::to_string( dst.position() ) << std::endl;
             if ( src.piece->colour() ) {
                 auto king_pos  = board_copy.get( white_king.get().position() );
                 int  king_rank = static_cast< int >( king_pos.position().first );
@@ -565,11 +577,9 @@ namespace chess {
                 if ( src.piece->type() == pieces::name_t::king ) {
                     std::unique_ptr< pieces::piece > king_piece;
                     king_piece = pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
-                    std::cout << "king access start\n";
                     board_copy.remove_piece_at( src.position() );
                     auto temp_attack_map = generate_attack_map( board_copy );
                     board_copy.add_piece_at( *king_piece, src.position() );
-                    std::cout << "king access end\n";
 
                     if ( temp_attack_map.has_attackers( dst, !src.piece->colour() ) ) {
                         return true;
@@ -612,25 +622,14 @@ namespace chess {
                         board_copy.remove_piece_at( dst.position() );
                     }
 
-                    if ( temp_attack_map.has_attackers( king_pos, !src.piece->colour() ) ) {
-                        // std::cout << "someone is attacking king somehow?\n";
-                        // std::cout << game_attack_map.to_string();
-                        // std::cout << "\n\n";
-                        // std::cout << temp_attack_map.to_string();
-                        return true;
-                    }
-                    else {
-                        return false;
-                    }
+                    return temp_attack_map.has_attackers( king_pos, !src.piece->colour() );
                 }
             }
             else {
-                std::cout << "black start\n";
                 auto king_pos  = board_copy.get( black_king.get().position() );
                 int  king_rank = static_cast< int >( king_pos.position().first );
                 int  king_file = static_cast< int >( king_pos.position().second );
-                // make sure
-                // king is not moving into danger
+                // make sure king is not moving into danger
                 if ( src.piece->type() == pieces::name_t::king ) {
                     std::unique_ptr< pieces::piece > king_piece;
                     king_piece = pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
@@ -661,90 +660,35 @@ namespace chess {
                     // Here, the king is in check. Add the piece we removed to the destination square, recompute the
                     // attack map, and see if the king is still under attack. If not, it's a valid move
 
-                    // if ( ( attack_map[king_rank - 1][king_file - 1] & 2 ) > 0 ) {
                     src_piece->place( dst.position() );
                     board_copy.add_piece_at( *src_piece, dst.position() );
                     assert( board_copy.get( dst.position() ).piece != nullptr );
 
-                    std::cout << "before attack map\n";
                     auto temp_attack_map = generate_attack_map( board_copy );
 
-                    std::cout << "after attack map\n";
                     // Since for speed I'm not copying the board more than I need to, we need to revert the moves we
                     // made
 
-                    std::cout << "start revert\n";
                     src_piece->place( src.position() );
                     board_copy.add_piece_at( *src_piece, src.position() );
                     assert( board_copy.get( src.position() ).piece != nullptr );
 
-                    std::cout << "end src re-add\n";
                     if ( dst_piece ) {
-                        std::cout << "dst piece re-add";
                         dst_piece->place( dst.position() );
                         board_copy.add_piece_at( *dst_piece, dst.position() );
                         assert( board_copy.get( dst.position() ).piece != nullptr );
                     }
                     else {
-                        std::cout << "dst position remove\n";
                         board_copy.remove_piece_at( dst.position() );
                     }
-                    // Check if the king is now in check
-                    // bool pinned = ( ( attack_map[king_rank - 1][king_file - 1] & 1 ) == 0 ) &&
-                    //               ( temp_attack_map[king_rank - 1][king_file - 1] & 1 ) > 0;
-                    // // If it is, we're pinned.
-                    // if ( pinned ) {
-                    //     board_copy.add_piece_at( *original_piece, src.position() );
-                    //     return true;
-                    // }
 
-                    // If we reach here, we are not pinned to the king
-                    // std::cout << "BLACK KING RANK FILE: " << king_rank << " " << king_file << std::endl;
-                    // Here, the king is in check. Add the piece we removed to the destination square, recompute the
-                    // attack map, and see if the king is still under attack. If not, it's a valid move
-                    if ( temp_attack_map.has_attackers( king_pos, !src.piece->colour() ) ) {
-                        return true;
-                    }
-                    else {
-                        return false;
-                    }
-                    // if ( ( attack_map[king_rank - 1][king_file - 1] & 1 ) > 0 ) {
-                    //     board_copy.add_piece_at( *original_piece, dst.position() );
-                    //     assert( board_copy.get( dst.position() ).piece != nullptr );
-
-                    //     temp_attack_map = generate_attack_map( board_copy );
-
-                    //     // Since for speed I'm not copying the board more than I need to, we need to put the
-                    //     piece back
-                    //     // to its original square
-                    //     board_copy.remove_piece_at( dst.position() );
-                    //     assert( !board_copy.get( dst.position() ).piece );
-
-                    //     board_copy.add_piece_at( *original_piece, src.position() );
-                    //     assert( board_copy.get( src.position() ).piece != nullptr );
-
-                    //     if ( ( temp_attack_map[king_rank - 1][king_file - 1] & 1 ) > 0 ) {
-                    //         return true;
-                    //     }
-                    //     else {
-                    //         return false;
-                    //     }
-                    // }
-                    // else {
-                    //     // Same thing, put the piece back to its original square
-                    //     board_copy.add_piece_at( *original_piece, src.position() );
-                    // }
+                    return temp_attack_map.has_attackers( king_pos, !src.piece->colour() );
                 }
             }
 
             return false;
         } );
 
-        std::cout << "erase end\n";
-
-        // end      = std::chrono::high_resolution_clock::now();
-        // duration = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
-        // std::cout << "Possible moves took " << duration.count() << " microseconds\n";
         return pieces::move_status::valid;
     }
 

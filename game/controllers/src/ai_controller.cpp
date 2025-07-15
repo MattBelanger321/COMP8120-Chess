@@ -1109,7 +1109,7 @@ namespace chess::controller {
             }
 
             std::cout << "AI Selecting Move...";
-            auto selected_move = select_best_move( 1 );
+            auto selected_move = select_best_move( 2 );
             std::cout << "AI selected move: " << to_string( selected_move.first.position() ) << " to "
                       << to_string( selected_move.second.position() ) << "\n";
 
