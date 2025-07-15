@@ -93,6 +93,30 @@ namespace chess {
         game_state parse_game_state_enum( const std::string & state_str );
 
     public:
+        struct color_attack_map {
+            int                               num_attackers;
+            std::vector< pieces::position_t > attacker_spaces;
+
+            void        clear();
+            void        add_attacker( pieces::position_t attacker );
+            void        remove_attacker( pieces::position_t attacker );
+            std::string to_string() const;
+        };
+
+        struct attack_map {
+            color_attack_map white_attack_map[8][8];
+            color_attack_map black_attack_map[8][8];
+
+            void        clear();
+            void        add_attacker( game::space attacker, pieces::position_t position_attacked );
+            void        remove_attacker( game::space attacker, pieces::position_t position_attacked );
+            bool        has_attackers( game::space s, bool color ) const;
+            int         num_attackers( game::space s, bool color ) const;
+            std::string to_string() const;
+        };
+
+        attack_map game_attack_map;
+
         chess_game();
         chess_game( std::string const & board_state );
         void load_from_string( std::string const & state );
@@ -103,16 +127,22 @@ namespace chess {
 
         std::string to_string() const;
 
-        std::vector< game::space > psuedo_possible_moves( game::space const & src ) const;
+        std::vector< game::space > psuedo_possible_moves( game::board game_board, game::space const & src ) const;
         pieces::move_status        possible_moves( game::space const &          src,
+                                                   std::vector< game::space > & possible_moves ) const;
+        pieces::move_status        possible_moves( game::board game_board, game::space const & src,
                                                    std::vector< game::space > & possible_moves ) const;
         std::vector< move_t >      legal_moves() const;
 
         std::vector< game::space > find_attackers( game::space const & src, bool const victim_color ) const;
 
-        bool                       can_castle( bool const color ) const;
-        void                       remove_piece_at( pieces::position_t position );
-        std::vector< std::string > get_move_history() const;
+        bool                              can_castle( bool const color ) const;
+        void                              remove_piece_at( pieces::position_t position );
+        std::vector< std::string >        get_move_history() const;
+        attack_map const                  generate_attack_map( game::board ) const;
+        void                              update_attack_map();
+        std::vector< pieces::position_t > possible_attacks( game::space const & src ) const;
+        std::vector< pieces::position_t > possible_attacks( game::board const & b, game::space const & src ) const;
 
         bool white_move() const;
         bool black_move() const;

@@ -1,5 +1,6 @@
 #include "piece.hpp"
 #include <controller.hpp>
+#include <iostream>
 #include <mutex>
 
 namespace chess::controller {

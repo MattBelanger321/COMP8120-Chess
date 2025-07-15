@@ -64,6 +64,7 @@ namespace chess::controller {
     void display::on_select( game::space const & sp )
     {
         std::cout << "Selected a Space: " << to_string( sp.position() ) << "\n";
+        // std::cout << "\tpossible moves1: " << possible_moves.size() << std::endl;
 
         if ( !possible_moves.empty() ) {
             if ( selected_space &&
@@ -80,14 +81,18 @@ namespace chess::controller {
         }
 
         // game.possible_moves populates vector
+        auto status = game.possible_moves( sp, possible_moves );
+        // std::cout << "\tstatus: " << static_cast< int >( status ) << std::endl;
+        // std::cout << "\tlen: " << possible_moves.size() << std::endl;
+        // std::cout << "\tis_valid: " << ( status == pieces::move_status::valid ) << std::endl;
+
+        possible_moves = {};
         if ( pieces::move_status::valid != game.possible_moves( sp, possible_moves ) ) {
             possible_moves = {};
         }
-
         if ( possible_moves.empty() ) {
             return;
         }
-
         select_space( sp.position() );
 
         std::cout << "Possible Moves: ";

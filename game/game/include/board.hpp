@@ -31,6 +31,12 @@ namespace chess::game {
         void filter_queen_moves( space const & current, std::vector< space > & moves ) const;
         void filter_king_moves( space const & current, std::vector< space > & moves ) const;
 
+        void add_pawn_attacks( space const & current, std::vector< pieces::position_t > & moves ) const;
+        void add_knight_attacks( space const & current, std::vector< pieces::position_t > & moves ) const;
+        void add_bishop_attacks( space const & current, std::vector< pieces::position_t > & moves ) const;
+        void add_rook_attacks( space const & current, std::vector< pieces::position_t > & moves ) const;
+        void add_queen_attacks( space const & current, std::vector< pieces::position_t > & moves ) const;
+        void add_king_attacks( space const & current, std::vector< pieces::position_t > & moves ) const;
         // Parse the entire board string
         void parse_board_string( const std::string & board_string );
 
@@ -63,7 +69,8 @@ namespace chess::game {
 
         void load_from_string( std::string const & board_string );
 
-        std::vector< space > possible_moves( space const & src ) const;
+        std::vector< space >              possible_moves( space const & src ) const;
+        std::vector< pieces::position_t > possible_attacks( space const & src ) const;
 
         // this function will perform illegal moves (or legal ones) if src contains a piece
         pieces::move_status move_force( pieces::position_t const & src, pieces::position_t const & dst );
@@ -77,7 +84,11 @@ namespace chess::game {
         // returns a reference to the space at the given position
         space const & get( pieces::position_t pos ) const;
 
-        void remove_piece_at( pieces::position_t position );
+        void        remove_piece_at( pieces::position_t const position );
+        static void remove_piece_at( rank_t & board, pieces::position_t position );
+
+        void        add_piece_at( pieces::piece const & p, pieces::position_t const position );
+        static void add_piece_at( rank_t & board, pieces::piece const & p, pieces::position_t const position );
 
         void reset( bool const empty = false );
 
