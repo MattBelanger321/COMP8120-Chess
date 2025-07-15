@@ -15,6 +15,70 @@ namespace chess::controller {
 
     float ai_controller::evaluate_position() const { return evaluate_position( game, true ); }
 
+    uint64_t ai_controller::compute_zobrist_hash( const game::board & b ) const
+    {
+        uint64_t hash = 0;
+
+        for ( int i = 1; i <= 8; i++ ) {
+            for ( int j = 1; j <= 8; j++ ) {
+                auto space = b.get( pieces::piece::itopos( i, j ).value() );
+
+                if ( !space.piece ) {
+                    continue;
+                }
+
+                int piece_index;
+                switch ( space.piece->type() ) {
+                case pieces::name_t::pawn:
+                    piece_index = 0;
+                    break;
+                case pieces::name_t::knight:
+                    piece_index = 1;
+                    break;
+                case pieces::name_t::bishop:
+                    piece_index = 2;
+                    break;
+                case pieces::name_t::rook:
+                    piece_index = 3;
+                    break;
+                case pieces::name_t::queen:
+                    piece_index = 4;
+                    break;
+                case pieces::name_t::king:
+                    piece_index = 5;
+                    break;
+                }
+
+                if ( !space.piece->colour() ) {
+                    piece_index += 6;
+                }
+
+                int square = ( i - 1 ) * 8 + ( j - 1 );
+
+                hash ^= zobrist_hash.piece_square[piece_index][square];
+            }
+        }
+
+        if ( game.white_move() ) {
+            hash ^= zobrist_hash.white_to_move;
+        }
+
+        if ( game.king_side_castle_white ) {
+            hash ^= zobrist_hash.castling_availability[0];
+        }
+        if ( game.queen_side_castle_white ) {
+            hash ^= zobrist_hash.castling_availability[1];
+        }
+        if ( game.king_side_castle_black ) {
+            hash ^= zobrist_hash.castling_availability[2];
+        }
+        if ( game.queen_side_castle_black ) {
+            hash ^= zobrist_hash.castling_availability[3];
+        }
+
+        return hash;
+    }
+
     // TODO: add to game class
     std::vector< game::space > attacks( std::vector< move_t > const & legal_moves, pieces::position_t const & pos )
     {
@@ -82,112 +146,20 @@ namespace chess::controller {
         std::chrono::high_resolution_clock::time_point start, end, startl, endl;
         std::chrono::microseconds                      duration;
 
-        start      = std::chrono::high_resolution_clock::now();
-        auto moves = game.legal_moves();
-        end        = std::chrono::high_resolution_clock::now();
-        duration   = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
-        // std::cout << "Legal moves took " << duration.count() << " microseconds\n";
-        // exit( 1 );
-
-        // for ( int i = 1; i <= 8; i++ ) {
-        //     for ( int j = 1; j <= 8; j++ ) {
-        //         auto space = game.get( pieces::piece::itopos( i, j ).value() );
-        //         if ( !space.piece ) {
-        //             std::cout << "0 ";
-        //         }
-        //         else {
-        //             switch ( space.piece->type() ) {
-        //             case pieces::name_t::pawn:
-        //                 std::cout << "P ";
-        //                 break;
-        //             case pieces::name_t::knight:
-        //                 std::cout << "H ";
-        //                 break;
-        //             case pieces::name_t::bishop:
-        //                 std::cout << "B ";
-        //                 break;
-        //             case pieces::name_t::rook:
-        //                 std::cout << "R ";
-        //                 break;
-        //             case pieces::name_t::queen:
-        //                 std::cout << "Q ";
-        //                 break;
-        //             case pieces::name_t::king:
-        //                 std::cout << "K ";
-        //                 break;
-        //             }
-        //         }
-        //     }
-
-        //     std::cout << "\n";
-        // }
-        // std::cout << "\n";
+        start                                  = std::chrono::high_resolution_clock::now();
+        auto moves                             = game.legal_moves();
+        end                                    = std::chrono::high_resolution_clock::now();
+        duration                               = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
         chess_game::attack_map game_attack_map = game.game_attack_map;
-
-        // std::cout << "in controller:\n";
-        // std::cout << game_attack_map.to_string() << std::endl;
-        // exit( 1 );
-        // for ( int i = 1; i <= 8; i++ ) {
-        //     for ( int j = 1; j <= 8; j++ ) {
-        //         auto space = game.get( pieces::piece::itopos( i, j ).value() );
-
-        //         if ( !( space.piece && space.piece->colour() == white ) ) {
-        //             continue;
-        //         }
-
-        //         int num_attackers = game_attack_map.num_attackers( space, white ) ) {
-        //             score++;
-        //         }
-        //     }
-        // }
-        // std::cout << score << std::endl;
-        // exit( 1 );
-        // score = 0.0f;
-        // startl = std::chrono::high_resolution_clock::now();
-        // std::cout << "num moves: " << moves.size() << std::endl;
-        // std::cout << "white: " << white << "\n";
 
         for ( auto const & move : moves ) {
             int num_defenders = game_attack_map.num_attackers( move.second, white );
             int num_attackers = game_attack_map.num_attackers( move.second, !white );
-            // std::cout << "Space " << pieces::to_string( move.second.position() ) << " is defended by " <<
-            // num_defenders << " white pieces, and attacked by " << num_defenders << " black pieces\n";
 
             if ( num_defenders >= num_attackers ) {
                 score++;
             }
-            // else {
-            //     std::cout << pieces::to_string( move.first.position() ) << pieces::to_string( move.second.position()
-            //     ); std::cout << "\n";
-            // }
         }
-        // std::cout << score << std::endl;
-        // score = 0.0f;
-        // exit( 1 );
-        // for ( auto const & move : moves ) {
-        //     // Only consider moves by the player with the given color
-        //     if ( move.first.piece && move.first.piece->colour() != color ) {
-        //         continue;
-        //     }
-
-        //     // startl         = std::chrono::high_resolution_clock::now();
-        //     auto attackers = game.find_attackers( move.second, !color );
-        //     // endl           = std::chrono::high_resolution_clock::now();
-        //     // duration       = std::chrono::duration_cast< std::chrono::microseconds >( endl - startl );
-        //     // std::cout << "Find attackers took " << duration.count() << " microseconds\n";
-        //     // exit( 1 );
-        //     auto defenders = game.find_attackers( move.second, color );
-
-        //     if ( attackers.size() <= defenders.size() ) {
-        //         score++;
-        //     }
-        // }
-        // std::cout << score << std::endl;
-        // exit( 1 );
-        // endl     = std::chrono::high_resolution_clock::now();
-        // duration = std::chrono::duration_cast< std::chrono::microseconds >( endl - startl );
-        // std::cout << "Piece mobility took " << duration.count() << " microseconds\n";
-        // exit( 1 );
         return score;
     }
 
@@ -1004,9 +976,20 @@ namespace chess::controller {
     float ai_controller::minimax( const chess_game & game, const int depth, float alpha, float beta,
                                   const bool maximizing_player ) const
     {
+        uint64_t zobrist_key = compute_zobrist_hash( game.get_board() );
+
+        auto iterator = position_cache.find( zobrist_key );
+        if ( iterator != position_cache.end() && iterator->second.depth >= depth ) {
+            // std::cout << "Found previously computed board state, returning score..." << std::endl;
+            return iterator->second.score;
+        }
+
         if ( depth == 0 || game.get_state() == chess::game_state::white_wins ||
              game.get_state() == chess::game_state::black_wins || game.get_state() == chess::game_state::draw ) {
-            return evaluate_position( game, maximizing_player );
+            float score                 = evaluate_position( game, maximizing_player );
+            position_cache[zobrist_key] = { score, depth };
+
+            return score;
         }
 
         float max_eval;
@@ -1028,6 +1011,7 @@ namespace chess::controller {
                 }
             }
 
+            position_cache[zobrist_key] = { max_eval, depth };
             return max_eval;
         }
         else {
@@ -1045,6 +1029,7 @@ namespace chess::controller {
                 }
             }
 
+            position_cache[zobrist_key] = { min_eval, depth };
             return min_eval;
         }
     }
@@ -1106,10 +1091,19 @@ namespace chess::controller {
                 continue;
             }
 
+            std::chrono::high_resolution_clock::time_point start, end, startl, endl;
+            std::chrono::milliseconds                      duration;
+
+            start = std::chrono::high_resolution_clock::now();
+
             std::cout << "AI Selecting Move...";
-            auto selected_move = select_best_move( 2 );
+            auto selected_move = select_best_move( 3 );
+            end                = std::chrono::high_resolution_clock::now();
+            duration           = std::chrono::duration_cast< std::chrono::milliseconds >( end - start );
+
             std::cout << "AI selected move: " << to_string( selected_move.first.position() ) << " to "
-                      << to_string( selected_move.second.position() ) << "\n";
+                      << to_string( selected_move.second.position() ) << " in " << duration.count()
+                      << " milliseconds\n";
 
             select_space( selected_move.first.position() );
 
