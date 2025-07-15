@@ -53,7 +53,7 @@ namespace chess::networking {
         message_cv.wait( lock, [this]() { return !last_message.empty(); } );
 
         std::string message = last_message;
-        last_message.clear();
+        last_message        = "";
         return message;
     }
 

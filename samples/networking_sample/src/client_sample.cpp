@@ -21,16 +21,15 @@ int main()
         while ( running ) {
             std::string msg = c.read();
             if ( !msg.empty() ) {
-                std::cout << "[server] " << msg << std::endl;
+                std::cout << msg << std::endl;
             }
         }
     } );
 
     // Sending thread
     while ( running ) {
-        std::cout << "[you] > ";
         std::string message;
-        std::getline( std::cin, message );
+        std::getline( std::cin, message, ';' );
 
         if ( message == "/quit" ) {
             running = false;

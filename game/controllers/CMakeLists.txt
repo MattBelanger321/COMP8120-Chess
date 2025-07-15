@@ -33,6 +33,7 @@ target_link_libraries(${PROJECT_NAME}
 	game_lib
 	pieces
 	imgui_initializer
+	server
 
 	PRIVATE
 	dear_imgui_chessboard

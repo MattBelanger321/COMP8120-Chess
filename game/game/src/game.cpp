@@ -110,7 +110,7 @@ namespace chess {
             }
             output += "\n";
         }
-        output += "\n";
+        output += ";\n";
 
         return output;
     }
@@ -347,7 +347,6 @@ namespace chess {
     void chess_game::load_from_string( const std::string & game_string )
     {
         std::istringstream iss( game_string );
-        std::string        line;
 
         // Extract board portion (everything before metadata section)
         std::string board_portion = extract_board_portion( game_string );

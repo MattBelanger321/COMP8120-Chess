@@ -2,6 +2,7 @@
 #define __CHESS__CONTROLLER__CONTROLLER__
 
 #include <game.hpp>
+#include <iostream>
 #include <optional>
 #include <piece.hpp>
 #include <space.hpp>

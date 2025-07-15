@@ -16,3 +16,4 @@ Castling Rights:
   White Queen-side: Available
   Black King-side:  Available
   Black Queen-side: Available
+;

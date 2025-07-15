@@ -39,11 +39,7 @@ namespace chess::game {
 
     board::board( const std::string & board_string ) { load_from_string( board_string ); }
 
-    void board::load_from_string( std::string const & state )
-    {
-        reset( true );
-        parse_board_string( state );
-    }
+    void board::load_from_string( std::string const & state ) { parse_board_string( state ); }
 
     // Parse the entire board string
     void board::parse_board_string( const std::string & board_string )
@@ -55,6 +51,7 @@ namespace chess::game {
             if ( !std::getline( iss, line ) ) {
                 throw std::invalid_argument( "Invalid board string format: missing rank " + std::to_string( rank ) );
             }
+
             parse_rank_line( line, rank );
         }
     }
@@ -77,7 +74,7 @@ namespace chess::game {
         size_t pos = line.find( '|' );
         if ( pos == std::string::npos ) {
             throw std::invalid_argument( "Invalid board string format: missing separator for rank " +
-                                         std::to_string( rank ) );
+                                         std::to_string( rank ) + " line: " + line );
         }
         return pos;
     }
@@ -88,7 +85,8 @@ namespace chess::game {
         pos++;  // Move past the '|'
         if ( pos >= line.length() ) {
             throw std::invalid_argument( "Invalid board string format: missing data for rank " +
-                                         std::to_string( rank ) + " file " + std::to_string( file ) );
+                                         std::to_string( rank ) + " file " + std::to_string( file ) +
+                                         " line: " + line );
         }
         return line[pos];
     }
@@ -99,7 +97,7 @@ namespace chess::game {
         size_t pos = line.find( '|', current_pos + 1 );
         if ( pos == std::string::npos && file < 8 ) {
             throw std::invalid_argument( "Invalid board string format: missing separator after file " +
-                                         std::to_string( file ) );
+                                         std::to_string( file ) + " line: " + line );
         }
         return pos;
     }
@@ -111,7 +109,9 @@ namespace chess::game {
         auto file_enum = static_cast< pieces::file_t >( file );
 
         if ( is_empty_space( symbol ) ) {
-            // Empty space - piece is already nullptr from reset
+            if ( ( *this )[rank_enum].at( file_enum ).piece ) {
+                ( *this )[rank_enum].at( file_enum ).piece.reset();
+            }
             return;
         }
 

@@ -1,4 +1,5 @@
 #include "ai_controller.hpp"
+#include "server_controller.hpp"
 #include <fstream>
 #include <functional>
 #include <imgui_initializer.hpp>
@@ -74,14 +75,10 @@ int main()
         buffer << file.rdbuf();  // Read entire file into buffer
         std::string contents = buffer.str();
 
-        chess::controller::display controller( board, status, control, contents );
-        auto                       func = std::function< void() >( [&controller]() { controller.render(); } );
-        std::thread                loopy( [&window, &func]() { window.run( func ); } );
-        // nlohmann::json                   chromie_json = nlohmann::json::parse( std::ifstream( "chromosome_new.json" )
-        // ); chess::controller::chromosome_t  chromie( chromie_json["chromosome"].get< std::vector< float > >() );
-        // chess::controller::ai_controller ai( chromie );
-
-        // ai.activate();
+        chess::controller::display           controller( board, status, control, contents );
+        auto                                 func = std::function< void() >( [&controller]() { controller.render(); } );
+        std::thread                          loopy( [&window, &func]() { window.run( func ); } );
+        chess::controller::server_controller server( 8080 );
 
         if ( loopy.joinable() )
             loopy.join();
