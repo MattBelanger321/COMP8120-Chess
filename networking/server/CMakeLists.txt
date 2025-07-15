@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.5)
+
+project(server LANGUAGES CXX)
+
+find_package(ixwebsocket REQUIRED)
+
+add_library(${PROJECT_NAME}
+	include/server.hpp
+	src/server.cpp
+)
+
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
+
+target_include_directories(${PROJECT_NAME}
+	PUBLIC
+	$<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+
+	PRIVATE
+)
+
+target_link_libraries(${PROJCET_NAME} ixwebsocket::ixwebsocket)
