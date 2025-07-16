@@ -6,7 +6,6 @@ nlohmann_json/3.11.0
 ixwebsocket/11.4.5
 
 [generators]
-cmake_paths
 CMakeDeps
 CMakeToolchain
 
