@@ -9,14 +9,14 @@ add_library(${PROJECT_NAME}
 	include/controller.hpp
 	include/display.hpp
 
-	# include/server_controller.hpp
+	include/server_controller.hpp
 	include/ci_controller.hpp
 	src/ci_controller.cpp
 	src/ai_controller.cpp
 	src/controller.cpp
 	src/display.cpp
 
-	# src/server_controller.cpp
+	src/server_controller.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
@@ -36,7 +36,7 @@ target_link_libraries(${PROJECT_NAME}
 	pieces
 	imgui_initializer
 
-	# server
+	server
 	PRIVATE
 	dear_imgui_chessboard
 )
