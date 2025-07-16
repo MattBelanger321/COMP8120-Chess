@@ -42,7 +42,8 @@ namespace chess {
         }
     }
 
-    void chess_game::attack_map::add_attacker( game::space const & attacker, pieces::position_t position_attacked )
+    void chess_game::attack_map::add_attacker( game::space const &        attacker,
+                                               pieces::position_t const & position_attacked )
     {
         if ( !attacker.piece ) {
             return;
@@ -59,7 +60,8 @@ namespace chess {
         }
     }
 
-    void chess_game::attack_map::remove_attacker( game::space const & attacker, pieces::position_t position_attacked )
+    void chess_game::attack_map::remove_attacker( game::space const &        attacker,
+                                                  pieces::position_t const & position_attacked )
     {
         if ( !attacker.piece ) {
             return;
@@ -358,6 +360,20 @@ namespace chess {
         parse_metadata_section( game_string );
 
         update_attack_map();
+
+        for ( int i = 1; i <= 8; i++ ) {
+            for ( int j = 1; j <= 8; j++ ) {
+                auto & sp = game_board.get( pieces::piece::itopos( i, j ).value() );
+                if ( sp.piece && sp.piece->type() == pieces::name_t::king ) {
+                    if ( sp.piece->colour() ) {
+                        white_king = *reinterpret_cast< pieces::king * >( sp.piece.get() );
+                    }
+                    else {
+                        black_king = *reinterpret_cast< pieces::king * >( sp.piece.get() );
+                    }
+                }
+            }
+        }
     }
 
     // Extract the board portion from the game string
@@ -743,7 +759,7 @@ namespace chess {
                     }
                 }
                 // Otherwise, we're not moving the king so check if the king is safe
-                else {
+                else {  // i am trying to move a white piece that is not the king
                     // save the piece
                     assert( board_copy.get( src.position() ).piece != nullptr );
 
@@ -779,7 +795,7 @@ namespace chess {
                         board_copy.remove_piece_at( dst.position() );
                     }
 
-                    return temp_attack_map.has_attackers( king_pos, !src.piece->colour() );
+                    return temp_attack_map.has_attackers( king_pos, false );
                 }
             }
             else {
@@ -838,8 +854,30 @@ namespace chess {
                     else {
                         board_copy.remove_piece_at( dst.position() );
                     }
-
-                    return temp_attack_map.has_attackers( king_pos, !src.piece->colour() );
+                    std::cout << temp_attack_map.to_string() << std::endl;
+                    std::cout << temp_attack_map.num_attackers( king_pos, true ) << std::endl;
+                    std::cout << temp_attack_map.white_attack_map[7][4].to_string() << std::endl;
+                    for ( int i = 0; i < 8; i++ ) {
+                        for ( int j = 0; j < 8; j++ ) {
+                            std::cout << temp_attack_map.white_attack_map[i][j].to_string() << " ";
+                        }
+                        std::cout << std::endl;
+                    }
+                    std::cout << "king position: " << pieces::to_string( king_pos.position() ) << std::endl;
+                    auto & space = board_copy.get( pieces::piece::itopos( 8, 5 ).value() );
+                    // std::cout << board_copy.to_string() << std::endl;
+                    if ( !space.piece ) {
+                        std::cout << "No piece at E8" << std::endl;
+                    }
+                    else {
+                        if ( space.piece->type() == pieces::name_t::king ) {
+                            std::cout << "King found at E8" << std::endl;
+                        }
+                        else {
+                            std::cout << "No king found at E8" << std::endl;
+                        }
+                    }
+                    return temp_attack_map.has_attackers( king_pos, true );
                 }
             }
 
