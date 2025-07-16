@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.5)
 
 project(chess)
 
-# set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/Debug/generators" CACHE PATH "" FORCE)
+set(CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}/build/Debug/generators" CACHE PATH "" FORCE)
+
 # include(${CMAKE_BINARY_DIR}/conan_paths.cmake OPTIONAL)
 # include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake OPTIONAL)
-
 add_subdirectory(imgui_initializer)
 add_subdirectory(game)
 add_subdirectory(networking)

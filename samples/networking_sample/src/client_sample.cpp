@@ -20,9 +20,6 @@ int main()
     std::thread receiver( [&]() {
         while ( running ) {
             std::string msg = c.read();
-            if ( !msg.empty() ) {
-                std::cout << msg << std::endl;
-            }
         }
     } );
 
