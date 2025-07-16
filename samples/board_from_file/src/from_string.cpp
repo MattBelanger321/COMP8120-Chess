@@ -1,9 +1,10 @@
-#include "ai_controller.hpp"
+#include <ai_controller.hpp>
 #include <fstream>
 #include <functional>
 #include <imgui_initializer.hpp>
 #include <iostream>
 #include <nlohmann/json_fwd.hpp>
+#include <server_controller.hpp>
 #include <thread>
 
 #include <display.hpp>
@@ -77,6 +78,8 @@ int main()
         chess::controller::display controller( board, status, control, contents );
         auto                       func = std::function< void() >( [&controller]() { controller.render(); } );
         std::thread                loopy( [&window, &func]() { window.run( func ); } );
+
+        chess::controller::server_controller server( 8080 );
 
         if ( loopy.joinable() )
             loopy.join();
