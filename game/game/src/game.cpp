@@ -42,7 +42,7 @@ namespace chess {
         }
     }
 
-    void chess_game::attack_map::add_attacker( game::space attacker, pieces::position_t position_attacked )
+    void chess_game::attack_map::add_attacker( game::space const & attacker, pieces::position_t position_attacked )
     {
         if ( !attacker.piece ) {
             return;
@@ -59,7 +59,7 @@ namespace chess {
         }
     }
 
-    void chess_game::attack_map::remove_attacker( game::space attacker, pieces::position_t position_attacked )
+    void chess_game::attack_map::remove_attacker( game::space const & attacker, pieces::position_t position_attacked )
     {
         if ( !attacker.piece ) {
             return;
@@ -76,12 +76,12 @@ namespace chess {
         }
     }
 
-    bool chess_game::attack_map::has_attackers( game::space s, bool color ) const
+    bool chess_game::attack_map::has_attackers( game::space const & s, bool color ) const
     {
         return num_attackers( s, color ) > 0;
     }
 
-    int chess_game::attack_map::num_attackers( game::space s, bool color ) const
+    int chess_game::attack_map::num_attackers( game::space const & s, bool color ) const
     {
         int rank = static_cast< int >( s.position().first );
         int file = static_cast< int >( s.position().second );
@@ -356,6 +356,8 @@ namespace chess {
 
         // Parse metadata section
         parse_metadata_section( game_string );
+
+        update_attack_map();
     }
 
     // Extract the board portion from the game string
@@ -593,7 +595,7 @@ namespace chess {
         return possible_moves( board_copy, src, moves );
     }
 
-    pieces::move_status chess_game::possible_moves( game::board board_copy, game::space const & src,
+    pieces::move_status chess_game::possible_moves( game::board & board_copy, game::space const & src,
                                                     std::vector< game::space > & possible_moves ) const
     {
         if ( !src.piece ) {

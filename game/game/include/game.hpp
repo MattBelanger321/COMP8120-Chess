@@ -102,10 +102,10 @@ namespace chess {
             color_attack_map black_attack_map[8][8];
 
             void        clear();
-            void        add_attacker( game::space attacker, pieces::position_t position_attacked );
-            void        remove_attacker( game::space attacker, pieces::position_t position_attacked );
-            bool        has_attackers( game::space s, bool color ) const;
-            int         num_attackers( game::space s, bool color ) const;
+            void        add_attacker( game::space const & attacker, pieces::position_t const & position_attacked );
+            void        remove_attacker( game::space const & attacker, pieces::position_t const & position_attacked );
+            bool        has_attackers( game::space const & s, bool color ) const;
+            int         num_attackers( game::space const & s, bool color ) const;
             std::string to_string() const;
         };
 
@@ -130,7 +130,7 @@ namespace chess {
         std::vector< game::space > psuedo_possible_moves( game::board game_board, game::space const & src ) const;
         pieces::move_status        possible_moves( game::space const &          src,
                                                    std::vector< game::space > & possible_moves ) const;
-        pieces::move_status        possible_moves( game::board game_board, game::space const & src,
+        pieces::move_status        possible_moves( game::board & game_board, game::space const & src,
                                                    std::vector< game::space > & possible_moves ) const;
         std::vector< move_t >      legal_moves() const;
 
