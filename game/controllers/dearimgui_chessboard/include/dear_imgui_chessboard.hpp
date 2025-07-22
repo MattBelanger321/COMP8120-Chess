@@ -17,8 +17,8 @@ namespace chess::controller {
     };
 
     struct space_context_t {
-        game::space const & sp;
-        bool                possible;  // set if a piece is selected AND that piece can move to this space
+        game::space const sp;
+        bool              possible;  // set if a piece is selected AND that piece can move to this space
     };
 
     enum class icon_t {

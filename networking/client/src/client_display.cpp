@@ -13,7 +13,7 @@ namespace chess::networking {
 
     client_display::client_display( component_data const board_dims, component_data const status_dims,
                                     component_data const control_dims ) :
-        game( "wss://127.0.0.1:8080" ),
+        game( "ws://127.0.0.1:8080" ),
         board_dims( board_dims ),
         status_dims( status_dims ),
         control_dims( control_dims ),
@@ -34,7 +34,7 @@ namespace chess::networking {
         if ( !pos )
             throw std::runtime_error( "Invalid Coordinates Given to itopos" );
 
-        auto & sp = game.get( *pos );
+        auto sp = game.get( *pos );
 
         bool possible = false;
         if ( std::find( possible_moves.begin(), possible_moves.end(), sp ) != possible_moves.end() ) {
@@ -64,11 +64,7 @@ namespace chess::networking {
 
         // game.possible_moves populates vector
         possible_moves = game.possible_moves( sp );
-        // std::cout << "\tstatus: " << static_cast< int >( status ) << std::endl;
-        // std::cout << "\tlen: " << possible_moves.size() << std::endl;
-        // std::cout << "\tis_valid: " << ( status == pieces::move_status::valid ) << std::endl;
 
-        possible_moves = game.possible_moves( sp );
         if ( possible_moves.size() > 0 ) {
             possible_moves = {};
         }
@@ -86,6 +82,7 @@ namespace chess::networking {
 
     void client_display::render()
     {
+        game.update_board();
         chess_board();
         status_dialog();
         control_panel();

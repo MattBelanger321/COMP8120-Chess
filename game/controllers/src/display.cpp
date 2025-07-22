@@ -80,13 +80,6 @@ namespace chess::controller {
             return;
         }
 
-        // game.possible_moves populates vector
-        auto status = game.possible_moves( sp, possible_moves );
-        // std::cout << "\tstatus: " << static_cast< int >( status ) << std::endl;
-        // std::cout << "\tlen: " << possible_moves.size() << std::endl;
-        // std::cout << "\tis_valid: " << ( status == pieces::move_status::valid ) << std::endl;
-
-        possible_moves = {};
         if ( pieces::move_status::valid != game.possible_moves( sp, possible_moves ) ) {
             possible_moves = {};
         }

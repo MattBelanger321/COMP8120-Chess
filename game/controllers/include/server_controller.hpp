@@ -22,7 +22,11 @@ namespace chess::controller {
         std::thread sender_thread;
 
         void listen();
-        void send();
+
+        // client handlers
+        void update_board_handler();
+        void possible_moves_handler( std::string const & move );
+        void move( std::string const & payload );
     };
 }  // namespace chess::controller
 #endif

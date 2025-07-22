@@ -1,8 +1,11 @@
 #include "controller.hpp"
+#include "server.hpp"
+#include "space.hpp"
 #include <exception>
 #include <iostream>
 #include <mutex>
 #include <server_controller.hpp>
+#include <sstream>
 #include <stdexcept>
 #include <thread>
 
@@ -26,46 +29,79 @@ namespace chess::controller {
         std::cout << "Started Server\n";
 
         listener_thread = std::thread( [this]() { listen(); } );
-        sender_thread   = std::thread( [this]() { send(); } );
     }
 
     void server_controller::listen()
     {
         while ( !should_close.test() ) {
-
-            std::string board;
-            {
-                std::lock_guard guard( game_mutex );
-                board = game.to_string();
-            }
             auto read = server.read();
-
-            try {
-                std::lock_guard guard( game_mutex );
-                game.load_from_string( read );
+            if ( read.starts_with( networking::update_board_command ) ) {
+                update_board_handler();
             }
-            catch ( std::exception const & e ) {
-                std::cout << "Message Could not be deserialized: " << e.what() << "\nReceived:\n" << read << "\n";
+            else if ( read.starts_with( networking::possible_moves_command ) ) {
+                std::string move = std::string( read.begin() + networking::possible_moves_command.size(), read.end() );
+
+                if ( move.size() != 2 ) {
+                    server.write( "" );
+                    std::cout << "Invalid Move Received: " << move << "\n";
+                }
+
+                std::cout << "Checking Possible Moves For: " << move << "\n";
+
+                possible_moves_handler( move );
+            }
+            else {
+                std::cout << "ERROR\n";
             }
         }
         std::cout << "Listen() Closed\n";
     }
 
-    void server_controller::send()
+    void server_controller::update_board_handler()
     {
-        using namespace std::chrono_literals;
-        while ( !should_close.test() ) {
-            std::string board;
+        try {
+            std::lock_guard guard( game_mutex );
+            server.write( networking::update_board_command + game.get_board().to_string() );
+        }
+        catch ( std::exception const & e ) {
+            std::cout << "Message Could not be deserialized: " << e.what() << "\n";
+        }
+    }
+
+    pieces::position_t to_pos( char const & file, char const & rank )
+    {
+        auto pos = pieces::piece::itopos( 1 + rank - '1', 1 + file - 'A' );
+
+        if ( pos.has_value() ) {
+            return *pos;
+        }
+        else {
+            throw std::runtime_error( std::string( "Non Position String:" ) + file + rank );
+        }
+    }
+
+    void server_controller::possible_moves_handler( std::string const & move )
+    {
+        std::vector< game::space > possible_moves;
+        possible_moves.reserve( 64 );
+
+        try {
             {
                 std::lock_guard guard( game_mutex );
-                board = game.to_string();
+                game.possible_moves( game.get( to_pos( move[0], move[1] ) ), possible_moves );
             }
-            if ( !server.write( board ) ) {
-                std::cout << "Error Sending Board\n";
+
+            std::stringstream ss;
+            for ( auto & sp : possible_moves ) {
+                ss << to_string( sp.position() );
             }
-            std::this_thread::sleep_for( 1s );
+
+            server.write( networking::possible_moves_command + ss.str() );
         }
-        std::cout << "Send() Closed\n";
+        catch ( std::exception const & e ) {
+            server.write( "" );
+            std::cout << e.what() << std::endl;
+        }
     }
 
     void server_controller::close()
