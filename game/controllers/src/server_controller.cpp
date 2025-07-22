@@ -1,4 +1,5 @@
 #include "controller.hpp"
+#include "piece.hpp"
 #include "server.hpp"
 #include "space.hpp"
 #include <exception>
@@ -50,6 +51,16 @@ namespace chess::controller {
 
                 possible_moves_handler( move );
             }
+            else if ( read.starts_with( networking::move_command ) ) {
+                std::string moves = std::string( read.begin() + networking::move_command.size(), read.end() );
+
+                if ( moves.size() != 4 ) {
+                    server.write( "" );
+                    std::cout << "Invalid Move Received: " << moves << "\n";
+                }
+
+                move_handler( moves );
+            }
             else {
                 std::cout << "ERROR\n";
             }
@@ -77,6 +88,21 @@ namespace chess::controller {
         }
         else {
             throw std::runtime_error( std::string( "Non Position String:" ) + file + rank );
+        }
+    }
+
+    void server_controller::move_handler( std::string const & moves )
+    {
+        auto src = to_pos( moves[0], moves[1] );
+        auto dst = to_pos( moves[2], moves[3] );
+
+        auto status = game.move( game.get( src ), game.get( dst ) );
+
+        if ( status != pieces::move_status::valid ) {
+            server.write( "" );
+        }
+        else {
+            server.write( networking::move_command );
         }
     }
 

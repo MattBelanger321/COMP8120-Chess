@@ -59,6 +59,22 @@ namespace chess::networking {
         return moves;
     }
 
+    bool client_game::move( game::space const & sp )
+    {
+        if ( !selected_space ) {
+            return false;
+        }
+
+        {
+            std::lock_guard cli_guard( client_mutex );
+            if ( !cli.write( move_command + to_string( selected_space->position() ) + to_string( sp.position() ) ) ) {
+                std::cout << "Unable to send message\n";
+            }
+            auto msg = cli.read();
+            return msg.starts_with( move_command );
+        }
+    }
+
     pieces::position_t to_pos( char const & file, char const & rank )
     {
 

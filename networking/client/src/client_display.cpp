@@ -30,15 +30,27 @@ namespace chess::networking {
 
     controller::space_context_t const client_display::get( int const i, int const j )
     {
+
         auto pos = pieces::piece::itopos( i, j );
         if ( !pos )
             throw std::runtime_error( "Invalid Coordinates Given to itopos" );
 
-        auto sp = game.get( *pos );
-
+        auto sp       = game.get( *pos );
         bool possible = false;
-        if ( std::find( possible_moves.begin(), possible_moves.end(), sp ) != possible_moves.end() ) {
-            possible = true;
+
+        if ( game.selected_space->piece ) {
+            if ( std::find( possible_moves.begin(), possible_moves.end(), sp ) != possible_moves.end() ) {
+                auto & selected_space_current = game.game_board.get( game.selected_space->position() );
+                if ( !selected_space_current.piece ) {
+                    game.selected_space.reset();
+                }
+                else if ( sp.piece && sp.piece->colour() == game.selected_space->piece->colour() ) {
+                    game.selected_space.reset();
+                }
+                else {
+                    possible = true;
+                }
+            }
         }
 
         return { .sp = sp, .possible = possible };
@@ -65,9 +77,6 @@ namespace chess::networking {
         // game.possible_moves populates vector
         possible_moves = game.possible_moves( sp );
 
-        if ( possible_moves.size() > 0 ) {
-            possible_moves = {};
-        }
         if ( possible_moves.empty() ) {
             return;
         }
@@ -83,6 +92,12 @@ namespace chess::networking {
     void client_display::render()
     {
         game.update_board();
+
+        auto new_state = game.get_state();
+        if ( game.game_state != new_state ) {
+            game.selected_space.reset();
+        }
+        game.game_state = new_state;
         chess_board();
         status_dialog();
         control_panel();
@@ -117,7 +132,7 @@ namespace chess::networking {
                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
         ImGui::SetWindowFontScale( 2.f );  // Scale factor (1.0 = normal size)
-        ImGui::Text( "%s", game.get_state().c_str() );
+        ImGui::Text( "%s", game.game_state.c_str() );
         ImGui::SetWindowFontScale( 1.f );  // Scale factor (1.0 = normal size)
         ImGui::End();
     }

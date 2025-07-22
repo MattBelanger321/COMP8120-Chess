@@ -12,12 +12,13 @@ namespace chess::networking {
 
     const std::string update_board_command( "/get/board/" );
     const std::string possible_moves_command( "/get/possible_moves/" );
+    const std::string move_command( "/post/move/" );
 
     class client_game {
     public:
         client_game( std::string const & url );
 
-        bool                       move( game::space const & sp ) { return false; };
+        bool                       move( game::space const & sp );
         std::vector< game::space > possible_moves( game::space const & sp );
         void                       select_space( game::space const & sp );
         std::string                get_state() { return "TEST"; };
@@ -26,10 +27,11 @@ namespace chess::networking {
         void update_board();
 
         std::optional< game::space > selected_space;
+        game::board                  game_board;
+        std::string                  game_state;
 
     private:
-        game::board game_board;
-        client      cli;
+        client cli;
 
         std::mutex  board_mutex;
         std::mutex  client_mutex;

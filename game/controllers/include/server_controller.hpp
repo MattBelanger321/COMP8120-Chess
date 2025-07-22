@@ -26,7 +26,7 @@ namespace chess::controller {
         // client handlers
         void update_board_handler();
         void possible_moves_handler( std::string const & move );
-        void move( std::string const & payload );
+        void move_handler( std::string const & moves );
     };
 }  // namespace chess::controller
 #endif
