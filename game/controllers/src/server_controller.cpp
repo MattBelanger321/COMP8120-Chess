@@ -61,6 +61,9 @@ namespace chess::controller {
 
                 move_handler( moves );
             }
+            else if ( read.starts_with( networking::status_command ) ) {
+                server.write( networking::status_command + to_string( game.get_state() ) );
+            }
             else {
                 std::cout << "ERROR\n";
             }

@@ -1,0 +1,18 @@
+8       |r|0|b|q|1|0|k|r|
+7       |p|1|p|1|Q|p|p|N|
+6       |1|p|B|0|1|0|1|0|
+5       |0|1|0|1|0|1|0|1|
+4       |1|0|1|0|1|0|1|0|
+3       |0|1|0|1|0|1|0|1|
+2       |P|P|P|P|1|P|P|P|
+1       |R|N|B|1|K|1|0|R|
+
+         A B C D E F G H 
+
+--- Game Metadata ---
+State: Black to move
+Castling Rights:
+  White King-side:  Available
+  White Queen-side: Available
+  Black King-side:  Lost
+  Black Queen-side: Lost

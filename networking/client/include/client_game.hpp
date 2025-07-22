@@ -13,6 +13,7 @@ namespace chess::networking {
     const std::string update_board_command( "/get/board/" );
     const std::string possible_moves_command( "/get/possible_moves/" );
     const std::string move_command( "/post/move/" );
+    const std::string status_command( "/get/status/" );
 
     class client_game {
     public:
@@ -21,7 +22,7 @@ namespace chess::networking {
         bool                       move( game::space const & sp );
         std::vector< game::space > possible_moves( game::space const & sp );
         void                       select_space( game::space const & sp );
-        std::string                get_state() { return "TEST"; };
+        std::string                get_state();
         game::space                get( pieces::position_t const & pos ) { return game_board.get( pos ); }
 
         void update_board();
