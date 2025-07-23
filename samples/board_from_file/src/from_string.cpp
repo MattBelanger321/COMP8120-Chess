@@ -24,7 +24,7 @@ void signal_handle( int signum )
 int main()
 {
     try {
-        chess::display::imgui_initializer window( "COMP 8120 Chess Demo", 1200, 900 );
+        chess::display::imgui_initializer window( "Chess Server", 1200, 900 );
 
         // chess::display
         chess::controller::component_data board{

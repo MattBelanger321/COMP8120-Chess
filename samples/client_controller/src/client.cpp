@@ -4,7 +4,7 @@
 int main()
 {
     try {
-        chess::display::imgui_initializer window( "COMP 8120 Chess Demo", 1200, 900 );
+        chess::display::imgui_initializer window( "Chess Client", 1200, 900 );
 
         // chess::display
         chess::networking::component_data board{
