@@ -13,7 +13,7 @@ namespace chess::networking {
 
     client_display::client_display( component_data const board_dims, component_data const status_dims,
                                     component_data const control_dims ) :
-        game( "ws://127.0.0.1:8080" ),
+        game( "ws://192.168.47.150:8080" ),
         board_dims( board_dims ),
         status_dims( status_dims ),
         control_dims( control_dims ),
@@ -95,6 +95,7 @@ namespace chess::networking {
 
         auto new_state = game.get_state();
         if ( game.game_state != new_state ) {
+            possible_moves = {};
             game.selected_space.reset();
         }
         game.game_state = new_state;

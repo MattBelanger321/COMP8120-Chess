@@ -1,3 +1,4 @@
+#include "game.hpp"
 #include "space.hpp"
 #include <bishop.hpp>
 #include <board.hpp>
@@ -948,7 +949,7 @@ namespace chess::game {
         }
 
         // copy the board
-        auto board = *this;
+        board board( to_string() );
 
         // force the move on the copied board (src to dst)
         board[dst.position().first].at( dst.position().second ).piece = src.piece->copy_piece();

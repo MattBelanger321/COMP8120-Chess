@@ -78,6 +78,7 @@ namespace chess {
         }
     }
 
+    // color is the team that is attacking
     bool chess_game::attack_map::has_attackers( game::space const & s, bool color ) const
     {
         return num_attackers( s, color ) > 0;
@@ -195,35 +196,6 @@ namespace chess {
             return pieces::move_status::illegal_move;
         }
 
-        if ( src.piece->colour() ) {
-            // if the king is being attacked
-            if ( src.piece->type() != pieces::name_t::king ) {
-                if ( game_board.determine_threat( src, dst, game_board.get( white_king.get().position() ), true ) ) {
-                    return pieces::move_status::enters_check;
-                }
-            }
-            else {
-                // if the king is moving into check
-                if ( game_board.determine_threat( src, dst, dst, true ) ) {
-                    return pieces::move_status::enters_check;
-                }
-            }
-        }
-        else {
-            // if the king is being attacked
-            if ( src.piece->type() != pieces::name_t::king ) {
-                if ( game_board.determine_threat( src, dst, game_board.get( black_king.get().position() ), false ) ) {
-                    return pieces::move_status::enters_check;
-                }
-            }
-            else {
-                // if the king is moving into check
-                if ( game_board.determine_threat( src, dst, dst, false ) ) {
-                    return pieces::move_status::enters_check;
-                }
-            }
-        }
-
         auto copy_dst = dst.position();
         status        = game_board.move( src.position(), dst.position() );
         update_attack_map();
@@ -232,10 +204,10 @@ namespace chess {
             return status;
         }
 
+        auto attack_map = generate_attack_map( game_board );
+
         if ( white_move() ) {
-            if ( game_board.determine_threat( game_board.get( black_king.get().position() ),
-                                              game_board.get( black_king.get().position() ),
-                                              game_board.get( black_king.get().position() ), false ) ) {
+            if ( attack_map.has_attackers( game_board.get( black_king.get().position() ), true ) ) {
                 state = game_state::black_check;
                 if ( checkmate( false ) ) {
                     std::cout << "White Wins\n";
@@ -256,9 +228,7 @@ namespace chess {
             }
         }
         else if ( black_move() ) {
-            if ( game_board.determine_threat( game_board.get( white_king.get().position() ),
-                                              game_board.get( white_king.get().position() ),
-                                              game_board.get( white_king.get().position() ), true ) ) {
+            if ( attack_map.has_attackers( game_board.get( white_king.get().position() ), false ) ) {
                 state = game_state::white_check;
                 if ( checkmate( true ) ) {
                     std::cout << "Black Wins\n";
@@ -611,258 +581,209 @@ namespace chess {
         return possible_moves( board_copy, src, moves );
     }
 
-    pieces::move_status chess_game::possible_moves( game::board & board_copy, game::space const & src,
-                                                    std::vector< game::space > & possible_moves ) const
+    // Helper function to validate turn order
+    pieces::move_status chess_game::validate_turn( const game::space & src ) const
     {
         if ( !src.piece ) {
             return pieces::move_status::no_piece_to_move;
         }
 
-        if ( src.piece->colour() ) {
-            if ( !white_move() ) {  // if it is not whites move than we cannot move a white piece
-                return pieces::move_status::invalid_turn;
+        bool is_white_piece = src.piece->colour();
+        if ( is_white_piece && !white_move() ) {
+            return pieces::move_status::invalid_turn;
+        }
+        if ( !is_white_piece && !black_move() ) {
+            return pieces::move_status::invalid_turn;
+        }
+
+        return pieces::move_status::valid;
+    }
+
+    // Helper function to check if castling squares are safe and empty
+    bool chess_game::are_castle_squares_safe( game::board &                      board_copy,
+                                              const std::vector< game::space > & castle_squares,
+                                              bool                               piece_colour ) const
+    {
+        for ( const auto & square : castle_squares ) {
+            if ( square.piece ) {
+                return false;  // Square is occupied
             }
+            if ( game_attack_map.has_attackers( square, !piece_colour ) ) {
+                return false;  // Square is under attack
+            }
+        }
+        return true;
+    }
+
+    // Helper function to get castling squares for white kingside
+    std::vector< game::space > chess_game::get_white_kingside_squares( game::board & board_copy ) const
+    {
+        std::vector< game::space > castle_squares;
+        castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 6 ).value() ) );
+        castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 7 ).value() ) );
+        return castle_squares;
+    }
+
+    // Helper function to get castling squares for white queenside
+    std::vector< game::space > chess_game::get_white_queenside_squares( game::board & board_copy ) const
+    {
+        std::vector< game::space > castle_squares;
+        castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 2 ).value() ) );
+        castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 3 ).value() ) );
+        castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 4 ).value() ) );
+        return castle_squares;
+    }
+
+    // Helper function to get castling squares for black kingside
+    std::vector< game::space > chess_game::get_black_kingside_squares( game::board & board_copy ) const
+    {
+        std::vector< game::space > castle_squares;
+        castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 6 ).value() ) );
+        castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 7 ).value() ) );
+        return castle_squares;
+    }
+
+    // Helper function to get castling squares for black queenside
+    std::vector< game::space > chess_game::get_black_queenside_squares( game::board & board_copy ) const
+    {
+        std::vector< game::space > castle_squares;
+        castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 2 ).value() ) );
+        castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 3 ).value() ) );
+        castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 4 ).value() ) );
+        return castle_squares;
+    }
+
+    // Helper function to add white castling moves
+    void chess_game::add_white_castling_moves( game::board & board_copy, const game::space & src,
+                                               std::vector< game::space > & possible_moves ) const
+    {
+        bool king_in_check = game_attack_map.has_attackers( src, !src.piece->colour() );
+
+        // Kingside castling
+        if ( !king_in_check && king_side_castle_white ) {
+            auto castle_squares = get_white_kingside_squares( board_copy );
+            if ( are_castle_squares_safe( board_copy, castle_squares, src.piece->colour() ) ) {
+                possible_moves.push_back( board_copy.get( { pieces::rank_t::one, pieces::file_t::g } ) );
+            }
+        }
+
+        // Queenside castling
+        if ( !king_in_check && queen_side_castle_white ) {
+            auto castle_squares = get_white_queenside_squares( board_copy );
+            if ( are_castle_squares_safe( board_copy, castle_squares, src.piece->colour() ) ) {
+                possible_moves.push_back( board_copy.get( { pieces::rank_t::one, pieces::file_t::c } ) );
+            }
+        }
+    }
+
+    // Helper function to add black castling moves
+    void chess_game::add_black_castling_moves( game::board & board_copy, const game::space & src,
+                                               std::vector< game::space > & possible_moves ) const
+    {
+        bool king_in_check = game_attack_map.has_attackers( src, !src.piece->colour() );
+
+        // Kingside castling
+        if ( !king_in_check && king_side_castle_black ) {
+            auto castle_squares = get_black_kingside_squares( board_copy );
+            if ( are_castle_squares_safe( board_copy, castle_squares, src.piece->colour() ) ) {
+                possible_moves.push_back( board_copy.get( { pieces::rank_t::eight, pieces::file_t::g } ) );
+            }
+        }
+
+        // Queenside castling
+        if ( !king_in_check && queen_side_castle_black ) {
+            auto castle_squares = get_black_queenside_squares( board_copy );
+            if ( are_castle_squares_safe( board_copy, castle_squares, src.piece->colour() ) ) {
+                possible_moves.push_back( board_copy.get( { pieces::rank_t::eight, pieces::file_t::c } ) );
+            }
+        }
+    }
+
+    // Helper function to add castling moves for kings
+    void chess_game::add_castling_moves( game::board & board_copy, const game::space & src,
+                                         std::vector< game::space > & possible_moves ) const
+    {
+        if ( src.piece->type() != pieces::name_t::king ) {
+            return;
+        }
+
+        if ( src.piece->colour() ) {
+            add_white_castling_moves( board_copy, src, possible_moves );
         }
         else {
-            if ( !black_move() ) {  // and vice versa
-                return pieces::move_status::invalid_turn;
-            }
+            add_black_castling_moves( board_copy, src, possible_moves );
+        }
+    }
+
+    // Helper function to check if king move is safe
+    bool chess_game::is_king_move_safe( game::board & board_copy, const game::space & src,
+                                        const game::space & dst ) const
+    {
+        std::unique_ptr< pieces::piece > king_piece =
+            pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
+
+        board_copy.remove_piece_at( src.position() );
+        auto temp_attack_map = generate_attack_map( board_copy );
+        board_copy.add_piece_at( *king_piece, src.position() );
+
+        return !temp_attack_map.has_attackers( dst, !src.piece->colour() );
+    }
+
+    // Helper function to check if non-king move leaves king safe
+    bool chess_game::is_non_king_move_safe( game::board & board_copy, const game::space & src,
+                                            const game::space & dst ) const
+    {
+        auto king_pos = src.piece->colour() ? board_copy.get( white_king.get().position() )
+                                            : board_copy.get( black_king.get().position() );
+
+        {
+            BoardMoveSimulator simulator( board_copy, src, dst );
+            auto               temp_attack_map = generate_attack_map( board_copy );
+            if ( src.piece )
+                return !temp_attack_map.has_attackers( king_pos, !src.piece->colour() );
+            else
+                return true;
+        }
+    }
+
+    // Helper function to validate individual moves
+    bool chess_game::is_move_legal( game::board & board_copy, const game::space & src, const game::space & dst ) const
+    {
+        if ( src.piece->type() == pieces::name_t::king ) {
+            return is_king_move_safe( board_copy, src, dst );
+        }
+        else {
+            return is_non_king_move_safe( board_copy, src, dst );
+        }
+    }
+
+    // Helper function to filter illegal moves
+    void chess_game::filter_illegal_moves( game::board & board_copy, const game::space & src,
+                                           std::vector< game::space > & possible_moves ) const
+    {
+        std::erase_if( possible_moves, [this, &src, &board_copy]( const game::space & dst ) {
+            return !is_move_legal( board_copy, src, dst );
+        } );
+    }
+
+    // Main function - now much cleaner and more focused
+    pieces::move_status chess_game::possible_moves( game::board & board_copy, const game::space & src,
+                                                    std::vector< game::space > & possible_moves ) const
+    {
+        // Validate turn
+        auto turn_status = validate_turn( src );
+        if ( turn_status != pieces::move_status::valid ) {
+            return turn_status;
         }
 
+        // Get basic possible moves
         possible_moves = game_board.possible_moves( src );
 
-        // if applicable add castling logic
-        if ( src.piece->type() == pieces::name_t::king ) {
-            pieces::position_t king_position = src.piece->position();
-            int                king_rank     = static_cast< int >( king_position.first );
-            int                king_file     = static_cast< int >( king_position.second );
+        // Add castling moves if applicable
+        add_castling_moves( board_copy, src, possible_moves );
 
-            // King cannot castle if currently in check
-            bool king_in_check = game_attack_map.has_attackers( src, !src.piece->colour() );
-
-            if ( src.piece->colour() ) {  // White
-                if ( !king_in_check && king_side_castle_white ) {
-                    // Check if kingside castling squares are empty
-                    std::vector< game::space > castle_squares;
-                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 6 ).value() ) );
-                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 7 ).value() ) );
-
-                    bool kingside_squares_empty = true;
-                    bool kingside_path_safe     = true;
-
-                    for ( auto s : castle_squares ) {
-                        if ( s.piece ) {
-                            kingside_squares_empty = false;
-                        }
-                        else if ( game_attack_map.has_attackers( s, !src.piece->colour() ) ) {
-                            kingside_path_safe = false;
-                        }
-                    }
-
-                    if ( kingside_squares_empty && kingside_path_safe ) {
-                        possible_moves.push_back( board_copy.get( { pieces::rank_t::one, pieces::file_t::g } ) );
-                    }
-                }
-
-                if ( !king_in_check && queen_side_castle_white ) {
-                    // Check if queenside castling squares are empty
-                    std::vector< game::space > castle_squares;
-                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 2 ).value() ) );
-                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 3 ).value() ) );
-                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 1, 4 ).value() ) );
-
-                    bool queenside_squares_empty = true;
-                    bool queenside_path_safe     = true;
-
-                    for ( auto s : castle_squares ) {
-                        if ( s.piece ) {
-                            queenside_squares_empty = false;
-                        }
-                        else if ( game_attack_map.has_attackers( s, !src.piece->colour() ) ) {
-                            queenside_path_safe = false;
-                        }
-                    }
-
-                    if ( queenside_squares_empty && queenside_path_safe ) {
-                        possible_moves.push_back( board_copy.get( { pieces::rank_t::one, pieces::file_t::c } ) );
-                    }
-                }
-            }
-            else {  // Black
-                if ( !king_in_check && king_side_castle_black ) {
-                    // Check if kingside castling squares are empty
-
-                    std::vector< game::space > castle_squares;
-                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 6 ).value() ) );
-                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 7 ).value() ) );
-
-                    bool kingside_squares_empty = true;
-                    bool kingside_path_safe     = true;
-
-                    for ( auto s : castle_squares ) {
-                        if ( s.piece ) {
-                            kingside_squares_empty = false;
-                        }
-                        else if ( game_attack_map.has_attackers( s, !src.piece->colour() ) ) {
-                            kingside_path_safe = false;
-                        }
-                    }
-
-                    if ( kingside_squares_empty && kingside_path_safe ) {
-                        possible_moves.push_back( board_copy.get( { pieces::rank_t::eight, pieces::file_t::g } ) );
-                    }
-                }
-
-                if ( !king_in_check && queen_side_castle_black ) {
-                    // Check if queenside castling squares are empty
-                    std::vector< game::space > castle_squares;
-                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 2 ).value() ) );
-                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 3 ).value() ) );
-                    castle_squares.push_back( board_copy.get( pieces::piece::itopos( 8, 4 ).value() ) );
-
-                    bool queenside_squares_empty = true;
-                    bool queenside_path_safe     = true;
-
-                    for ( auto s : castle_squares ) {
-                        if ( s.piece ) {
-                            queenside_squares_empty = false;
-                        }
-                        else if ( game_attack_map.has_attackers( s, !src.piece->colour() ) ) {
-                            queenside_path_safe = false;
-                        }
-                    }
-                    if ( queenside_squares_empty && queenside_path_safe ) {
-                        possible_moves.push_back( board_copy.get( { pieces::rank_t::eight, pieces::file_t::c } ) );
-                    }
-                }
-            }
-        }
-        std::erase_if( possible_moves, [this, &src, &board_copy]( game::space const & dst ) {
-            int dst_rank = static_cast< int >( dst.position().first );
-            int dst_file = static_cast< int >( dst.position().second );
-
-            if ( src.piece->colour() ) {
-                auto king_pos  = board_copy.get( white_king.get().position() );
-                int  king_rank = static_cast< int >( king_pos.position().first );
-                int  king_file = static_cast< int >( king_pos.position().second );
-
-                // make sure king is not moving into danger
-                if ( src.piece->type() == pieces::name_t::king ) {
-                    std::unique_ptr< pieces::piece > king_piece;
-                    king_piece = pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
-                    board_copy.remove_piece_at( src.position() );
-                    auto temp_attack_map = generate_attack_map( board_copy );
-                    board_copy.add_piece_at( *king_piece, src.position() );
-
-                    if ( temp_attack_map.has_attackers( dst, !src.piece->colour() ) ) {
-                        return true;
-                    }
-                }
-                // Otherwise, we're not moving the king so check if the king is safe
-                else {  // i am trying to move a white piece that is not the king
-                    // save the piece
-                    assert( board_copy.get( src.position() ).piece != nullptr );
-
-                    std::unique_ptr< pieces::piece > src_piece, dst_piece;
-
-                    src_piece = pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
-
-                    if ( board_copy.get( dst.position() ).piece ) {
-                        dst_piece = pieces::piece::copy_piece( *board_copy.get( dst.position() ).piece );
-                    }
-
-                    // Remove the src piece
-                    board_copy.remove_piece_at( src.position() );
-                    assert( !board_copy.get( src.position() ).piece );
-
-                    src_piece->place( dst.position() );
-                    board_copy.add_piece_at( *src_piece, dst.position() );
-                    assert( board_copy.get( dst.position() ).piece != nullptr );
-
-                    auto temp_attack_map = generate_attack_map( board_copy );
-                    // Since for speed I'm not copying the board more than I need to, we need to put the piece back
-                    // to its original square
-                    src_piece->place( src.position() );
-                    board_copy.add_piece_at( *src_piece, src.position() );
-                    assert( board_copy.get( src.position() ).piece != nullptr );
-
-                    if ( dst_piece ) {
-                        dst_piece->place( dst.position() );
-                        board_copy.add_piece_at( *dst_piece, dst.position() );
-                        assert( board_copy.get( dst.position() ).piece != nullptr );
-                    }
-                    else {
-                        board_copy.remove_piece_at( dst.position() );
-                    }
-
-                    return temp_attack_map.has_attackers( king_pos, false );
-                }
-            }
-            else {
-                auto king_pos  = board_copy.get( black_king.get().position() );
-                int  king_rank = static_cast< int >( king_pos.position().first );
-                int  king_file = static_cast< int >( king_pos.position().second );
-                // make sure king is not moving into danger
-                if ( src.piece->type() == pieces::name_t::king ) {
-                    std::unique_ptr< pieces::piece > king_piece;
-                    king_piece = pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
-                    board_copy.remove_piece_at( src.position() );
-                    auto temp_attack_map = generate_attack_map( board_copy );
-                    board_copy.add_piece_at( *king_piece, src.position() );
-
-                    if ( temp_attack_map.has_attackers( dst, !src.piece->colour() ) ) {
-                        return true;
-                    }
-                }
-                // Otherwise, we're not moving the king so check if the king is safe
-                else {
-                    // Check if we're pinned to the king
-
-                    // save the piece
-                    std::unique_ptr< pieces::piece > src_piece, dst_piece;
-
-                    src_piece = pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
-                    if ( board_copy.get( dst.position() ).piece ) {
-                        dst_piece = pieces::piece::copy_piece( *board_copy.get( dst.position() ).piece );
-                    }
-
-                    // Remove the piece
-                    board_copy.remove_piece_at( src.position() );
-                    assert( !board_copy.get( src.position() ).piece );
-
-                    // Here, the king is in check. Add the piece we removed to the destination square, recompute the
-                    // attack map, and see if the king is still under attack. If not, it's a valid move
-
-                    src_piece->place( dst.position() );
-                    board_copy.add_piece_at( *src_piece, dst.position() );
-                    assert( board_copy.get( dst.position() ).piece != nullptr );
-
-                    auto temp_attack_map = generate_attack_map( board_copy );
-
-                    // Since for speed I'm not copying the board more than I need to, we need to revert the moves we
-                    // made
-
-                    src_piece->place( src.position() );
-                    board_copy.add_piece_at( *src_piece, src.position() );
-                    assert( board_copy.get( src.position() ).piece != nullptr );
-
-                    if ( dst_piece ) {
-                        dst_piece->place( dst.position() );
-                        board_copy.add_piece_at( *dst_piece, dst.position() );
-                        assert( board_copy.get( dst.position() ).piece != nullptr );
-                    }
-                    else {
-                        board_copy.remove_piece_at( dst.position() );
-                    }
-
-                    auto & space = board_copy.get( pieces::piece::itopos( 8, 5 ).value() );
-
-                    return temp_attack_map.has_attackers( king_pos, true );
-                }
-            }
-
-            return false;
-        } );
+        // Filter out moves that would leave king in check
+        filter_illegal_moves( board_copy, src, possible_moves );
 
         return pieces::move_status::valid;
     }
