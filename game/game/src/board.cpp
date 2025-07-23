@@ -3,6 +3,7 @@
 #include <bishop.hpp>
 #include <board.hpp>
 #include <cstdlib>
+#include <exception>
 #include <king.hpp>
 #include <knight.hpp>
 #include <pawn.hpp>
@@ -791,7 +792,16 @@ namespace chess::game {
         return positions;
     }
 
-    space const & board::get( pieces::position_t pos ) const { return game_board.at( pos.first ).at( pos.second ); }
+    space const & board::get( pieces::position_t pos ) const
+    {  //
+        try {
+            return game_board.at( pos.first ).at( pos.second );
+        }
+        catch ( std::exception const & e ) {
+            std::cout << "Error Getting Position: " << pieces::to_string( pos ) << "\n";
+            throw e;
+        }
+    }
 
     std::string board::to_string() const
     {

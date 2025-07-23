@@ -65,7 +65,7 @@ int main()
         };
 
         // read sample board state
-        std::ifstream file( "../board_position.txt" );
+        std::ifstream file( "../white_is_in_check.txt" );
         if ( !file ) {
             std::cerr << "Failed to open board_position.txt\n";
             return 1;

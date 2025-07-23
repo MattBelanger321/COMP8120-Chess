@@ -158,7 +158,7 @@ namespace chess {
     {
         std::vector< game::space > moves;
         moves.reserve( 64 );
-        auto board_copy = game_board;
+        game::board board_copy = game_board;
 
         for ( int i = 1; i <= 8; i++ ) {
             for ( int j = 1; j <= 8; j++ ) {
@@ -204,50 +204,53 @@ namespace chess {
             return status;
         }
 
-        auto attack_map = generate_attack_map( game_board );
+        try {
+            if ( white_move() ) {
+                if ( game_attack_map.has_attackers( game_board.get( black_king.get().position() ), true ) ) {
+                    state = game_state::black_check;
+                    if ( checkmate( false ) ) {
+                        std::cout << "White Wins\n";
+                        state = game_state::white_wins;
+                    }
+                }
+                else {
+                    state = game_state::black_move;
+                }
 
-        if ( white_move() ) {
-            if ( attack_map.has_attackers( game_board.get( black_king.get().position() ), true ) ) {
-                state = game_state::black_check;
-                if ( checkmate( false ) ) {
-                    std::cout << "White Wins\n";
-                    state = game_state::white_wins;
+                white_castling_rights( src_piece_cpy, src.position() );
+
+                if ( dst == pieces::piece::itopos( 8, 1 ) ) {
+                    queen_side_castle_black = false;
+                }
+                else if ( dst == pieces::piece::itopos( 8, 8 ) ) {
+                    king_side_castle_black = false;
+                }
+            }
+            else if ( black_move() ) {
+                if ( game_attack_map.has_attackers( game_board.get( white_king.get().position() ), false ) ) {
+                    state = game_state::white_check;
+                    if ( checkmate( true ) ) {
+                        std::cout << "Black Wins\n";
+                        state = game_state::black_wins;
+                    }
+                }
+                else {
+                    state = game_state::white_move;
+                }
+                black_castling_rights( src_piece_cpy, src.position() );
+                if ( dst == pieces::piece::itopos( 1, 1 ) ) {
+                    queen_side_castle_white = false;
+                }
+                else if ( dst == pieces::piece::itopos( 1, 8 ) ) {
+                    king_side_castle_white = false;
                 }
             }
             else {
-                state = game_state::black_move;
-            }
-
-            white_castling_rights( src_piece_cpy, src.position() );
-
-            if ( dst == pieces::piece::itopos( 8, 1 ) ) {
-                queen_side_castle_black = false;
-            }
-            else if ( dst == pieces::piece::itopos( 8, 8 ) ) {
-                king_side_castle_black = false;
+                throw std::logic_error( "Impossible Game State" );
             }
         }
-        else if ( black_move() ) {
-            if ( attack_map.has_attackers( game_board.get( white_king.get().position() ), false ) ) {
-                state = game_state::white_check;
-                if ( checkmate( true ) ) {
-                    std::cout << "Black Wins\n";
-                    state = game_state::black_wins;
-                }
-            }
-            else {
-                state = game_state::white_move;
-            }
-            black_castling_rights( src_piece_cpy, src.position() );
-            if ( dst == pieces::piece::itopos( 1, 1 ) ) {
-                queen_side_castle_white = false;
-            }
-            else if ( dst == pieces::piece::itopos( 1, 8 ) ) {
-                king_side_castle_white = false;
-            }
-        }
-        else {
-            throw std::logic_error( "Impossible Game State" );
+        catch ( const std::exception & e ) {
+            std::cerr << "Error Checking Attack Map\n";
         }
         return pieces::move_status::valid;
     }
