@@ -3,7 +3,7 @@
 
 namespace chess::networking {
 
-    server::server( int port ) : port( port ), websocket_server( port )
+    server::server( int port ) : port( port ), websocket_server( port, "0.0.0.0" )
     {
         websocket_server.setOnConnectionCallback(
             [this]( std::weak_ptr< ix::WebSocket > weak_socket, std::shared_ptr< ix::ConnectionState > state ) {
