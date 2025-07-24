@@ -2,6 +2,7 @@
 #include <display.hpp>
 #include <imgui.h>
 #include <iostream>
+#include <mutex>
 #include <ostream>
 #include <piece.hpp>
 #include <space.hpp>
@@ -52,29 +53,34 @@ namespace chess::controller {
         if ( !pos )
             throw std::runtime_error( "Invalid Coordinates Given to itopos" );
 
-        auto & sp = game.get( *pos );
+        std::lock_guard game_guard( game_mutex );
+        auto &          sp = game.get( *pos );
 
         bool possible = false;
         if ( std::find( possible_moves.begin(), possible_moves.end(), sp ) != possible_moves.end() ) {
             possible = true;
         }
-
         return { .sp = sp, .possible = possible };
     }
 
     void display::on_select( game::space const & sp )
     {
+
         std::cout << "Selected a Space: " << to_string( sp.position() ) << "\n";
-        // std::cout << "\tpossible moves1: " << possible_moves.size() << std::endl;
 
         if ( !possible_moves.empty() ) {
             if ( selected_space &&
                  std::find( possible_moves.begin(), possible_moves.end(), sp ) != possible_moves.end() ) {
-                auto status = move( sp );
+                try {
+                    auto status = move( sp );
 
-                if ( status != pieces::move_status::valid ) {
-                    std::cout << "\nMove To Space: " << to_string( sp.position() ) << " FAILED: " << to_string( status )
-                              << ", Try Again\n";
+                    if ( status != pieces::move_status::valid ) {
+                        std::cout << "\nMove To Space: " << to_string( sp.position() )
+                                  << " FAILED: " << to_string( status ) << ", Try Again\n";
+                    }
+                }
+                catch ( const std::exception & e ) {
+                    std::cerr << "On Select Error error: " << pieces::to_string( sp.position() ) << std::endl;
                 }
             }
             possible_moves = {};

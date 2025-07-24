@@ -1,7 +1,9 @@
+#include "game.hpp"
 #include "space.hpp"
 #include <bishop.hpp>
 #include <board.hpp>
 #include <cstdlib>
+#include <exception>
 #include <king.hpp>
 #include <knight.hpp>
 #include <pawn.hpp>
@@ -790,7 +792,16 @@ namespace chess::game {
         return positions;
     }
 
-    space const & board::get( pieces::position_t pos ) const { return game_board.at( pos.first ).at( pos.second ); }
+    space const & board::get( pieces::position_t pos ) const
+    {  //
+        try {
+            return game_board.at( pos.first ).at( pos.second );
+        }
+        catch ( std::exception const & e ) {
+            std::cout << "Error Getting Position: " << pieces::to_string( pos ) << "\n";
+            throw e;
+        }
+    }
 
     std::string board::to_string() const
     {
@@ -948,7 +959,7 @@ namespace chess::game {
         }
 
         // copy the board
-        auto board = *this;
+        board board( to_string() );
 
         // force the move on the copied board (src to dst)
         board[dst.position().first].at( dst.position().second ).piece = src.piece->copy_piece();

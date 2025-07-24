@@ -7,7 +7,6 @@
 #include <string>
 
 namespace chess::networking {
-
     const std::string update_board_command( "/get/board/" );
     const std::string possible_moves_command( "/get/possible_moves/" );
     const std::string move_command( "/post/move/" );

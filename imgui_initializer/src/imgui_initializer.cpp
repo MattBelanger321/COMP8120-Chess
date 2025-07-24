@@ -127,8 +127,13 @@ namespace chess::display {
                 ImGui_ImplGlfw_NewFrame();
                 ImGui::NewFrame();
 
-                // Execute user's render function
-                render_function();
+                try {
+                    // Execute user's render function
+                    render_function();
+                }
+                catch ( const std::exception & e ) {
+                    std::cerr << "Render User Function Error: " << e.what() << std::endl;
+                }
 
                 // Rendering
                 ImGui::Render();

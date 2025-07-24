@@ -57,6 +57,48 @@ namespace chess {
 
     using move_t = std::pair< game::space, game::space >;
 
+    // Helper function to simulate a move and restore board state
+    class BoardMoveSimulator {
+    public:
+        BoardMoveSimulator( game::board & board, const game::space & src, const game::space & dst ) :
+            board_( board ), src_pos_( src.position() ), dst_pos_( dst.position() )
+        {
+
+            // Save pieces
+            src_piece_ = pieces::piece::copy_piece( *board_.get( src_pos_ ).piece );
+            if ( board_.get( dst_pos_ ).piece ) {
+                dst_piece_ = pieces::piece::copy_piece( *board_.get( dst_pos_ ).piece );
+            }
+
+            // Execute move
+            board_.remove_piece_at( src_pos_ );
+            src_piece_->place( dst_pos_ );
+            board_.add_piece_at( *src_piece_, dst_pos_ );
+        }
+
+        ~BoardMoveSimulator()
+        {
+            // Restore original state
+            src_piece_->place( src_pos_ );
+            board_.add_piece_at( *src_piece_, src_pos_ );
+
+            if ( dst_piece_ ) {
+                dst_piece_->place( dst_pos_ );
+                board_.add_piece_at( *dst_piece_, dst_pos_ );
+            }
+            else {
+                board_.remove_piece_at( dst_pos_ );
+            }
+        }
+
+    private:
+        game::board &                    board_;
+        pieces::position_t               src_pos_;
+        pieces::position_t               dst_pos_;
+        std::unique_ptr< pieces::piece > src_piece_;
+        std::unique_ptr< pieces::piece > dst_piece_;
+    };
+
     class chess_game {
     private:
         game_state  state;
@@ -85,6 +127,44 @@ namespace chess {
 
         // Convert string to game_state enum
         game_state parse_game_state_enum( const std::string & state_str );
+
+        // Main function prototype
+        pieces::move_status possible_moves( game::board & board_copy, const game::space & src,
+                                            std::vector< game::space > & possible_moves ) const;
+
+        // Turn validation
+        pieces::move_status validate_turn( const game::space & src ) const;
+
+        // Castling square helpers
+        std::vector< game::space > get_white_kingside_squares( game::board & board_copy ) const;
+        std::vector< game::space > get_white_queenside_squares( game::board & board_copy ) const;
+        std::vector< game::space > get_black_kingside_squares( game::board & board_copy ) const;
+        std::vector< game::space > get_black_queenside_squares( game::board & board_copy ) const;
+
+        // Castling safety validation
+        bool are_castle_squares_safe( game::board & board_copy, const std::vector< game::space > & castle_squares,
+                                      bool piece_colour ) const;
+
+        // Castling move addition
+        void add_white_castling_moves( game::board & board_copy, const game::space & src,
+                                       std::vector< game::space > & possible_moves ) const;
+
+        void add_black_castling_moves( game::board & board_copy, const game::space & src,
+                                       std::vector< game::space > & possible_moves ) const;
+
+        void add_castling_moves( game::board & board_copy, const game::space & src,
+                                 std::vector< game::space > & possible_moves ) const;
+
+        // Move safety validation
+        bool is_king_move_safe( game::board & board_copy, const game::space & src, const game::space & dst ) const;
+
+        bool is_non_king_move_safe( game::board & board_copy, const game::space & src, const game::space & dst ) const;
+
+        bool is_move_legal( game::board & board_copy, const game::space & src, const game::space & dst ) const;
+
+        // Move filtering
+        void filter_illegal_moves( game::board & board_copy, const game::space & src,
+                                   std::vector< game::space > & possible_moves ) const;
 
     public:
         struct color_attack_map {
@@ -129,8 +209,6 @@ namespace chess {
 
         std::vector< game::space > psuedo_possible_moves( game::board game_board, game::space const & src ) const;
         pieces::move_status        possible_moves( game::space const &          src,
-                                                   std::vector< game::space > & possible_moves ) const;
-        pieces::move_status        possible_moves( game::board & game_board, game::space const & src,
                                                    std::vector< game::space > & possible_moves ) const;
         std::vector< move_t >      legal_moves() const;
 
