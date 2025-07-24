@@ -62,10 +62,11 @@ int main()
                     .y = status.size.height,
                 },
         };
+
         chess::controller::display       controller( board, status, control );
         auto                             func = std::function< void() >( [&controller]() { controller.render(); } );
         std::thread                      loopy( [&window, &func]() { window.run( func ); } );
-        nlohmann::json                   chromie_json = nlohmann::json::parse( std::ifstream( "chromosome_new.json" ) );
+        nlohmann::json                   chromie_json = nlohmann::json::parse( std::ifstream( "chromosome.json" ) );
         chess::controller::chromosome_t  chromie( chromie_json["chromosome"].get< std::vector< float > >() );
         chess::controller::ai_controller ai( chromie );
 
