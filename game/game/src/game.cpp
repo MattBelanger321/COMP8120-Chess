@@ -186,7 +186,8 @@ namespace chess {
         auto src_piece_cpy = src.piece->copy_piece();
 
         std::vector< game::space > pos;
-        auto                       status = possible_moves( game_board, src, pos );
+        auto                       board_cpy = game_board;
+        auto                       status    = possible_moves( board_cpy, src, pos );
 
         if ( status != pieces::move_status::valid ) {
             return status;
@@ -478,6 +479,8 @@ namespace chess {
         output << "  White Queen-side: " << ( queen_side_castle_white ? "Available" : "Lost" ) << "\n";
         output << "  Black King-side:  " << ( king_side_castle_black ? "Available" : "Lost" ) << "\n";
         output << "  Black Queen-side: " << ( queen_side_castle_black ? "Available" : "Lost" ) << "\n";
+        output << " White King Pos: " << pieces::to_string( white_king.get().position() ) << "\n";
+        output << " Black King Pos: " << pieces::to_string( black_king.get().position() ) << "\n";
 
         return output.str();
     }
