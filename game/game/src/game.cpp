@@ -5,6 +5,7 @@
 #include <chrono>
 #include <game.hpp>
 #include <iostream>
+#include <ostream>
 #include <piece.hpp>
 #include <stdexcept>
 #include <string>
@@ -165,7 +166,9 @@ namespace chess {
                 auto & src = board_copy.get( pieces::piece::itopos( i, j ).value() );
                 if ( src.piece && src.piece->colour() == colour ) {
                     possible_moves( board_copy, src, moves );
+                    std::cout << moves.size() << std::endl;
                     if ( !moves.empty() ) {
+                        std::cout << board_copy.to_string() << std::endl;
                         return false;
                     }
                 }
