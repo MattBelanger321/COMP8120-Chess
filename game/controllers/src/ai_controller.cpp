@@ -973,7 +973,7 @@ namespace chess::controller {
         return score;
     }
 
-    float ai_controller::minimax( const chess_game & game, const int depth, float alpha, float beta,
+    float ai_controller::minimax( chess_game & game, const int depth, float alpha, float beta,
                                   const bool maximizing_player ) const
     {
         uint64_t zobrist_key = compute_zobrist_hash( game.get_board() );
@@ -1000,13 +1000,14 @@ namespace chess::controller {
             max_eval = -std::numeric_limits< double >::infinity();
 
             for ( const move_t & move : legal_moves ) {
-                chess_game possible_move = game;
-                possible_move.move( move.first, move.second );
-                float score = minimax( possible_move, depth - 1, alpha, beta, false );
+                
+                game.move( move.first, move.second );
+                float score = minimax( game, depth - 1, alpha, beta, false );
+                game.undo();
 
                 max_eval = std::max( max_eval, score );
                 alpha    = std::max( alpha, score );
-                if ( beta <= alpha ) {
+                if ( beta <= alpha ) {5
                     break;
                 }
             }
@@ -1018,9 +1019,10 @@ namespace chess::controller {
             min_eval = std::numeric_limits< double >::infinity();
 
             for ( const move_t & move : legal_moves ) {
-                chess_game possible_move = game;
-                possible_move.move( move.first, move.second );
-                float score = minimax( possible_move, depth - 1, alpha, beta, true );
+                
+                game.move( move.first, move.second );
+                float score = minimax( game, depth - 1, alpha, beta, true );
+                game.undo();
 
                 min_eval = std::min( min_eval, score );
                 beta     = std::min( beta, score );
