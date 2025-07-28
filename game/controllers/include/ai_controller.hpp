@@ -174,7 +174,7 @@ namespace chess::controller {
 
         float  move_score( const chess_game & game, const move_t move ) const;
         float  order_moves( const chess_game & game ) const;
-        float  minimax( const chess_game & game, const int depth, float alpha, float beta,
+        float  minimax( chess_game & game, const int depth, float alpha, float beta,
                         const bool maximizing_player ) const;
         move_t select_best_move( const int depth ) const;
         float  evaluate_position() const;
