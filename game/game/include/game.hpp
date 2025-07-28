@@ -57,48 +57,6 @@ namespace chess {
 
     using move_t = std::pair< game::space, game::space >;
 
-    // Helper function to simulate a move and restore board state
-    class BoardMoveSimulator {
-    public:
-        BoardMoveSimulator( game::board & board, const game::space & src, const game::space & dst ) :
-            board_( board ), src_pos_( src.position() ), dst_pos_( dst.position() )
-        {
-
-            // Save pieces
-            src_piece_ = pieces::piece::copy_piece( *board_.get( src_pos_ ).piece );
-            if ( board_.get( dst_pos_ ).piece ) {
-                dst_piece_ = pieces::piece::copy_piece( *board_.get( dst_pos_ ).piece );
-            }
-
-            // Execute move
-            board_.remove_piece_at( src_pos_ );
-            src_piece_->place( dst_pos_ );
-            board_.add_piece_at( *src_piece_, dst_pos_ );
-        }
-
-        ~BoardMoveSimulator()
-        {
-            // Restore original state
-            src_piece_->place( src_pos_ );
-            board_.add_piece_at( *src_piece_, src_pos_ );
-
-            if ( dst_piece_ ) {
-                dst_piece_->place( dst_pos_ );
-                board_.add_piece_at( *dst_piece_, dst_pos_ );
-            }
-            else {
-                board_.remove_piece_at( dst_pos_ );
-            }
-        }
-
-    private:
-        game::board &                    board_;
-        pieces::position_t               src_pos_;
-        pieces::position_t               dst_pos_;
-        std::unique_ptr< pieces::piece > src_piece_;
-        std::unique_ptr< pieces::piece > dst_piece_;
-    };
-
     class chess_game {
     private:
         game_state  state;
