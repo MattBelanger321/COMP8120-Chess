@@ -5,6 +5,7 @@
 #include <chrono>
 #include <game.hpp>
 #include <iostream>
+#include <ostream>
 #include <piece.hpp>
 #include <stdexcept>
 #include <string>
@@ -171,8 +172,6 @@ namespace chess {
                 }
             }
         }
-
-        std::cout << "game thinks its checkmate\n";
         return true;
     }
 
@@ -186,7 +185,8 @@ namespace chess {
         auto src_piece_cpy = src.piece->copy_piece();
 
         std::vector< game::space > pos;
-        auto                       status = possible_moves( game_board, src, pos );
+        auto                       board_cpy = game_board;
+        auto                       status    = possible_moves( board_cpy, src, pos );
 
         if ( status != pieces::move_status::valid ) {
             return status;
@@ -481,6 +481,8 @@ namespace chess {
         output << "  White Queen-side: " << ( queen_side_castle_white ? "Available" : "Lost" ) << "\n";
         output << "  Black King-side:  " << ( king_side_castle_black ? "Available" : "Lost" ) << "\n";
         output << "  Black Queen-side: " << ( queen_side_castle_black ? "Available" : "Lost" ) << "\n";
+        output << " White King Pos: " << pieces::to_string( white_king.get().position() ) << "\n";
+        output << " Black King Pos: " << pieces::to_string( black_king.get().position() ) << "\n";
 
         return output.str();
     }
@@ -721,35 +723,70 @@ namespace chess {
         }
     }
 
-    // Helper function to check if king move is safe
     bool chess_game::is_king_move_safe( game::board & board_copy, const game::space & src,
                                         const game::space & dst ) const
     {
+        // Copy the king piece
         std::unique_ptr< pieces::piece > king_piece =
             pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
 
-        board_copy.remove_piece_at( src.position() );
-        auto temp_attack_map = generate_attack_map( board_copy );
-        board_copy.add_piece_at( *king_piece, src.position() );
+        // Save any piece at destination for reversion
+        std::unique_ptr< pieces::piece > captured_piece = nullptr;
+        if ( board_copy.get( dst.position() ).piece ) {
+            captured_piece = pieces::piece::copy_piece( *board_copy.get( dst.position() ).piece );
+            board_copy.remove_piece_at( dst.position() );
+        }
 
-        return !temp_attack_map.has_attackers( dst, !src.piece->colour() );
+        // Simulate move
+        board_copy.remove_piece_at( src.position() );
+        board_copy.add_piece_at( *king_piece, dst.position() );
+
+        // Generate attack map and check if king is safe
+        auto temp_attack_map = generate_attack_map( board_copy );
+        bool king_safe       = !temp_attack_map.has_attackers( dst, !king_piece->colour() );
+
+        // Revert move
+        board_copy.remove_piece_at( dst.position() );
+        board_copy.add_piece_at( *king_piece, src.position() );
+        if ( captured_piece )
+            board_copy.add_piece_at( *captured_piece, dst.position() );
+
+        return king_safe;
     }
 
-    // Helper function to check if non-king move leaves king safe
     bool chess_game::is_non_king_move_safe( game::board & board_copy, const game::space & src,
                                             const game::space & dst ) const
     {
-        auto king_pos = src.piece->colour() ? board_copy.get( white_king.get().position() )
-                                            : board_copy.get( black_king.get().position() );
+        // Copy the moving piece
+        std::unique_ptr< pieces::piece > moving_piece =
+            pieces::piece::copy_piece( *board_copy.get( src.position() ).piece );
 
-        {
-            BoardMoveSimulator simulator( board_copy, src, dst );
-            auto               temp_attack_map = generate_attack_map( board_copy );
-            if ( src.piece )
-                return !temp_attack_map.has_attackers( king_pos, !src.piece->colour() );
-            else
-                return true;
+        // Save any piece at destination for later reversion
+        std::unique_ptr< pieces::piece > captured_piece = nullptr;
+        if ( board_copy.get( dst.position() ).piece ) {
+            captured_piece = pieces::piece::copy_piece( *board_copy.get( dst.position() ).piece );
+            board_copy.remove_piece_at( dst.position() );
         }
+
+        // Perform simulated move
+        board_copy.remove_piece_at( src.position() );
+        board_copy.add_piece_at( *moving_piece, dst.position() );
+
+        // Get king's current position
+        const game::space & king_space = moving_piece->colour() ? board_copy.get( white_king.get().position() )
+                                                                : board_copy.get( black_king.get().position() );
+
+        // Generate attack map and check king safety
+        auto temp_attack_map = generate_attack_map( board_copy );
+        bool king_safe       = !temp_attack_map.has_attackers( king_space, !moving_piece->colour() );
+
+        // Revert move
+        board_copy.remove_piece_at( dst.position() );
+        board_copy.add_piece_at( *moving_piece, src.position() );
+        if ( captured_piece )
+            board_copy.add_piece_at( *captured_piece, dst.position() );
+
+        return king_safe;
     }
 
     // Helper function to validate individual moves
