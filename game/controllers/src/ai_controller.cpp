@@ -978,7 +978,6 @@ namespace chess::controller {
     {
         uint64_t zobrist_key = compute_zobrist_hash( game.get_board() );
 
-        using namespace std::chrono_literals;
         // std::this_thread::sleep_for( 1s );
 
         auto iterator = position_cache.find( zobrist_key );
@@ -1118,8 +1117,7 @@ namespace chess::controller {
 
     move_t ai_controller::select_best_move( const int depth ) const
     {
-        auto game_copy = game;  
-        std::vector< move_t > legal_moves = game_copy.legal_moves();
+        std::vector< move_t > legal_moves = game.legal_moves();
 
         if ( legal_moves.empty() ) {
             throw std::runtime_error( "No Legal Moves" );
@@ -1133,7 +1131,7 @@ namespace chess::controller {
 
         for ( const move_t & move : legal_moves ) {
             // set if its whites turn
-            bool current_turn = game_copy.white_move();
+            bool current_turn = game.white_move();
 
             // game::space src_space = game_copy.get(move.first.position());
             // game::space dst_space = game_copy.get(move.second.position());
