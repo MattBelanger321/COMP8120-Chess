@@ -821,7 +821,7 @@ namespace chess::controller {
         float material_score = compute_material_score( game_copy, white );
         end                  = std::chrono::high_resolution_clock::now();
         duration             = std::chrono::duration_cast< std::chrono::microseconds >( end - start );
-        score += material_score * chromosome.material_score_bonus * 100;
+        score += material_score * chromosome.material_score_bonus;
         // std::cout << "material_score_time " << duration.count() << " microseconds\n";
         // std::cout << "material_score: " << material_score << std::endl;
 
@@ -1005,44 +1005,44 @@ namespace chess::controller {
 
             bool current_turn = game.white_move();
             for ( const move_t & move : legal_moves ) {
-                // game::space src_space = game.get(move.first.position());
-                // game::space dst_space = game.get(move.second.position());
+                game::space src_space = game.get(move.first.position());
+                game::space dst_space = game.get(move.second.position());
 
-                // std::unique_ptr<chess::pieces::piece> src_piece;
-                // std::unique_ptr<chess::pieces::piece> dst_piece;
+                std::unique_ptr<chess::pieces::piece> src_piece;
+                std::unique_ptr<chess::pieces::piece> dst_piece;
 
-                // if (src_space.piece) {
-                //     src_piece = src_space.piece->copy_piece();
-                // }
-                // if (dst_space.piece) {
-                //     dst_piece = dst_space.piece->copy_piece();
-                // }
+                if (src_space.piece) {
+                    src_piece = src_space.piece->copy_piece();
+                }
+                if (dst_space.piece) {
+                    dst_piece = dst_space.piece->copy_piece();
+                }
 
-                // bool white_kingside_castle = game.king_side_castle_white;
-                // bool white_queenside_castle = game.queen_side_castle_white;
-                // bool black_kingside_castle = game.king_side_castle_black;
-                // bool black_queenside_castle =  game.queen_side_castle_black;
-                auto temp = game;
-                temp.move( move.first, move.second );
-                float score = minimax( temp, depth - 1, alpha, beta, false );
+                bool white_kingside_castle = game.king_side_castle_white;
+                bool white_queenside_castle = game.queen_side_castle_white;
+                bool black_kingside_castle = game.king_side_castle_black;
+                bool black_queenside_castle =  game.queen_side_castle_black;
 
-                // if (src_piece) {
-                //     game.add_piece_at(*src_piece, move.first.position());
-                // }
+                game.move( move.first, move.second );
+                float score = minimax( game, depth - 1, alpha, beta, false );
 
-                // if (dst_piece) {
-                //     game.add_piece_at(*dst_piece, move.second.position());
-                // }
-                // else {
-                //     game.remove_piece_at(move.second.position());
-                // }           
+                if (src_piece) {
+                    game.add_piece_at(*src_piece, move.first.position());
+                }
 
-                // game.king_side_castle_white = white_kingside_castle;
-                // game.queen_side_castle_white = white_queenside_castle;
-                // game.king_side_castle_black = black_kingside_castle;
-                // game.queen_side_castle_black = black_queenside_castle;
+                if (dst_piece) {
+                    game.add_piece_at(*dst_piece, move.second.position());
+                }
+                else {
+                    game.remove_piece_at(move.second.position());
+                }           
 
-                // game.set_turn(current_turn);
+                game.king_side_castle_white = white_kingside_castle;
+                game.queen_side_castle_white = white_queenside_castle;
+                game.king_side_castle_black = black_kingside_castle;
+                game.queen_side_castle_black = black_queenside_castle;
+
+                game.set_turn(current_turn);
 
                 // game.update_attack_map();
             
@@ -1060,46 +1060,45 @@ namespace chess::controller {
             min_eval = std::numeric_limits< double >::infinity();
 
             for ( const move_t & move : legal_moves ) {
-                // game::space src_space = game.get(move.first.position());
-                // game::space dst_space = game.get(move.second.position());
+                game::space src_space = game.get(move.first.position());
+                game::space dst_space = game.get(move.second.position());
 
-                // std::unique_ptr<chess::pieces::piece> src_piece;
-                // std::unique_ptr<chess::pieces::piece> dst_piece;
+                std::unique_ptr<chess::pieces::piece> src_piece;
+                std::unique_ptr<chess::pieces::piece> dst_piece;
 
-                // if (src_space.piece) {
-                //     src_piece = src_space.piece->copy_piece();
-                // }
-                // if (dst_space.piece) {
-                //     dst_piece = dst_space.piece->copy_piece();
-                // }  
+                if (src_space.piece) {
+                    src_piece = src_space.piece->copy_piece();
+                }
+                if (dst_space.piece) {
+                    dst_piece = dst_space.piece->copy_piece();
+                }  
 
-                // bool white_kingside_castle = game.king_side_castle_white;
-                // bool white_queenside_castle = game.queen_side_castle_white;
-                // bool black_kingside_castle = game.king_side_castle_black;
-                // bool black_queenside_castle =  game.queen_side_castle_black;
+                bool white_kingside_castle = game.king_side_castle_white;
+                bool white_queenside_castle = game.queen_side_castle_white;
+                bool black_kingside_castle = game.king_side_castle_black;
+                bool black_queenside_castle =  game.queen_side_castle_black;
 
-                auto temp = game;
-                temp.move( move.first, move.second );
+                game.move( move.first, move.second );
 
-                float score = minimax( temp, depth - 1, alpha, beta, true );
+                float score = minimax( game, depth - 1, alpha, beta, true );
 
-                // if (src_piece) {
-                //     game.add_piece_at(*src_piece, move.first.position());
-                // }
+                if (src_piece) {
+                    game.add_piece_at(*src_piece, move.first.position());
+                }
 
-                // if (dst_piece) {
-                //     game.add_piece_at(*dst_piece, move.second.position());
-                // }   
-                // else {
-                //     game.remove_piece_at(move.second.position());
-                // }                    
+                if (dst_piece) {
+                    game.add_piece_at(*dst_piece, move.second.position());
+                }   
+                else {
+                    game.remove_piece_at(move.second.position());
+                }                    
 
-                // game.king_side_castle_white = white_kingside_castle;
-                // game.queen_side_castle_white = white_queenside_castle;
-                // game.king_side_castle_black = black_kingside_castle;
-                // game.queen_side_castle_black = black_queenside_castle;
+                game.king_side_castle_white = white_kingside_castle;
+                game.queen_side_castle_white = white_queenside_castle;
+                game.king_side_castle_black = black_kingside_castle;
+                game.queen_side_castle_black = black_queenside_castle;
 
-                // game.set_turn(current_turn);
+                game.set_turn(current_turn);
 
                 // game.update_attack_map();
 
@@ -1117,6 +1116,7 @@ namespace chess::controller {
 
     move_t ai_controller::select_best_move( const int depth ) const
     {
+        auto game_copy = game;
         std::vector< move_t > legal_moves = game.legal_moves();
 
         if ( legal_moves.empty() ) {
@@ -1127,53 +1127,54 @@ namespace chess::controller {
 
         // black wants lower scores, white wants higher scores
         double best_score =
-            game.white_move() ? -std::numeric_limits< double >::infinity() : std::numeric_limits< double >::infinity();
+            game_copy.white_move() ? -std::numeric_limits< double >::infinity() : std::numeric_limits< double >::infinity();
 
         for ( const move_t & move : legal_moves ) {
             // set if its whites turn
-            bool current_turn = game.white_move();
+            bool current_turn = game_copy.white_move();
 
-            // game::space src_space = game_copy.get(move.first.position());
-            // game::space dst_space = game_copy.get(move.second.position());
+            game::space src_space = game_copy.get(move.first.position());
+            game::space dst_space = game_copy.get(move.second.position());
 
-            // std::unique_ptr<chess::pieces::piece> src_piece;
-            // std::unique_ptr<chess::pieces::piece> dst_piece;
+            std::unique_ptr<chess::pieces::piece> src_piece;
+            std::unique_ptr<chess::pieces::piece> dst_piece;
 
-            // if (src_space.piece) {
-            //     src_piece = src_space.piece->copy_piece();
-            // }
-            // if (dst_space.piece) {
-            //     dst_piece = dst_space.piece->copy_piece();
-            // }
+            if (src_space.piece) {
+                src_piece = src_space.piece->copy_piece();
+            }
+            if (dst_space.piece) {
+                dst_piece = dst_space.piece->copy_piece();
+            }
 
-            // bool white_kingside_castle = game_copy.king_side_castle_white;
-            // bool white_queenside_castle = game_copy.queen_side_castle_white;
-            // bool black_kingside_castle = game_copy.king_side_castle_black;
-            // bool black_queenside_castle =  game_copy.queen_side_castle_black;
+            bool white_kingside_castle = game_copy.king_side_castle_white;
+            bool white_queenside_castle = game_copy.queen_side_castle_white;
+            bool black_kingside_castle = game_copy.king_side_castle_black;
+            bool black_queenside_castle =  game_copy.queen_side_castle_black;
 
-            auto temp = game;
-            temp.move( move.first, move.second );
-            float score = minimax( temp, depth - 1, -std::numeric_limits< double >::infinity(),
+            // auto temp = game;
+            // temp.move( move.first, move.second );
+            game_copy.move(move.first, move.second);
+            float score = minimax( game_copy, depth - 1, -std::numeric_limits< double >::infinity(),
                                   std::numeric_limits< double >::infinity(), !current_turn );
-            // if (src_piece) {
-            //     game_copy.add_piece_at(*src_piece, move.first.position());
-            // }
+            if (src_piece) {
+                game_copy.add_piece_at(*src_piece, move.first.position());
+            }
 
-            // if (dst_piece) {
-            //     game_copy.add_piece_at(*dst_piece, move.second.position());
-            // }
-            // else {
-            //     game_copy.remove_piece_at(move.second.position());
-            // }          
+            if (dst_piece) {
+                game_copy.add_piece_at(*dst_piece, move.second.position());
+            }
+            else {
+                game_copy.remove_piece_at(move.second.position());
+            }          
 
-            // game_copy.king_side_castle_white = white_kingside_castle;
-            // game_copy.queen_side_castle_white = white_queenside_castle;
-            // game_copy.king_side_castle_black = black_kingside_castle;
-            // game_copy.queen_side_castle_black = black_queenside_castle;
+            game_copy.king_side_castle_white = white_kingside_castle;
+            game_copy.queen_side_castle_white = white_queenside_castle;
+            game_copy.king_side_castle_black = black_kingside_castle;
+            game_copy.queen_side_castle_black = black_queenside_castle;
 
-            // game_copy.set_turn(current_turn);
+            game_copy.set_turn(current_turn);
 
-            // game_copy.update_attack_map();
+            game_copy.update_attack_map();
 
             if ( current_turn ) {  // White's turn
                 if ( score > best_score ) {
@@ -1214,7 +1215,7 @@ namespace chess::controller {
             start = std::chrono::high_resolution_clock::now();
 
             std::cout << "AI Selecting Move...";
-            auto selected_move = select_best_move( 2 );
+            auto selected_move = select_best_move( 3 );
             end                = std::chrono::high_resolution_clock::now();
             duration           = std::chrono::duration_cast< std::chrono::milliseconds >( end - start );
 
