@@ -113,32 +113,34 @@ namespace chess::controller {
         *pieces::piece::itopos( 4, 4 ), *pieces::piece::itopos( 4, 5 ), *pieces::piece::itopos( 5, 5 ),
         *pieces::piece::itopos( 5, 4 ) };
 
+    struct zobrist_t {
+        uint64_t piece_square[12][64];
+        uint64_t castling_availability[4];
+        uint64_t white_to_move;
+
+        zobrist_t()
+        {
+            std::mt19937_64                           rng( 20250517 );
+            std::uniform_int_distribution< uint64_t > distribution;
+
+            for ( int i = 0; i < 12; i++ ) {
+                for ( int j = 0; j < 64; j++ ) {
+                    piece_square[i][j] = distribution( rng );
+                }
+            }
+
+            for ( int i = 0; i < 4; i++ ) {
+                castling_availability[i] = distribution( rng );
+            }
+
+            white_to_move = distribution( rng );
+        }
+    };
+
     class ai_controller : public controller {
     private:
         chromosome_t chromosome;
-        struct zobrist_t {
-            uint64_t piece_square[12][64];
-            uint64_t castling_availability[4];
-            uint64_t white_to_move;
 
-            zobrist_t()
-            {
-                std::mt19937_64                           rng( 20250517 );
-                std::uniform_int_distribution< uint64_t > distribution;
-
-                for ( int i = 0; i < 12; i++ ) {
-                    for ( int j = 0; j < 64; j++ ) {
-                        piece_square[i][j] = distribution( rng );
-                    }
-                }
-
-                for ( int i = 0; i < 4; i++ ) {
-                    castling_availability[i] = distribution( rng );
-                }
-
-                white_to_move = distribution( rng );
-            }
-        };
         zobrist_t zobrist_hash;
 
         struct cache_entry {
