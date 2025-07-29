@@ -9,6 +9,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <thread>
+#include <future>
 
 namespace chess::controller {
     ai_controller::ai_controller( chromosome_t chromie ) : controller(), chromosome( chromie ) {}
@@ -1051,51 +1052,43 @@ namespace chess::controller {
             throw std::runtime_error( "No Legal Moves" );
         }
 
-        std::optional< move_t > best_move;
         bool is_white_turn = game.white_move();
+
+        std::vector<std::future<std::pair<move_t, float>>> futures;
+        for (const move_t& move : legal_moves) {
+            futures.push_back(std::async(std::launch::async, [this, move, depth, is_white_turn]() {
+                chess_game possible_move = game;
+                possible_move.move(move.first, move.second);
+                
+                float score = minimax(possible_move, depth - 1, 
+                                    -std::numeric_limits<double>::infinity(),
+                                    std::numeric_limits<double>::infinity(), 
+                                    !is_white_turn);
+                
+                return std::make_pair(move, score);
+            }));
+        }
         
-        // Initialize based on who's moving
+        // Collect results
+        std::optional<move_t> best_move;
         double best_score = is_white_turn ? 
-            -std::numeric_limits< double >::infinity() :  // White wants to maximize
-            std::numeric_limits< double >::infinity();    // Black wants to minimize
-
-        for ( const move_t & move : legal_moves ) {
-            chess_game possible_move = game;
-            possible_move.move( move.first, move.second );
-
+            -std::numeric_limits<double>::infinity() :
+            std::numeric_limits<double>::infinity();
+        
+        for (auto& future : futures) {
+            auto [move, score] = future.get();
+            
             std::cout << pieces::to_string(move.first.position()) << " to " 
-                      << pieces::to_string(move.second.position()) << std::endl;
+                    << pieces::to_string(move.second.position()) 
+                    << " score: " << score << std::endl;
             
-            // After making the move, it's the opponent's turn
-            float score = minimax( possible_move, depth - 1, 
-                                   -std::numeric_limits< double >::infinity(),
-                                   std::numeric_limits< double >::infinity(), 
-                                   !is_white_turn );
-
-            std::cout << "Move score: " << score << std::endl;
-            
-            if ( is_white_turn ) {  
-                // White's turn - select move that maximizes score
-                if ( score > best_score ) {
-                    std::cout << "NEW BEST for White: " << score << " > " << best_score << std::endl;
-                    best_score = score;
-                    best_move = move;
-                } else {
-                    std::cout << "Not better for White: " << score << " <= " << best_score << std::endl;
-                }
-            }
-            else {  
-                // Black's turn - select move that minimizes score (from White's perspective)
-                if ( score < best_score ) {
-                    std::cout << "NEW BEST for Black: " << score << " < " << best_score << std::endl;
-                    best_score = score;
-                    best_move = move;
-                } else {
-                    std::cout << "Not better for Black: " << score << " >= " << best_score << std::endl;
-                }
+            if ((is_white_turn && score > best_score) || 
+                (!is_white_turn && score < best_score)) {
+                best_score = score;
+                best_move = move;
             }
         }
-
+        
         std::cout << "Select best move: score=" << best_score << std::endl;
         return best_move.value();
     }
