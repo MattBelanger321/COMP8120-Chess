@@ -8,6 +8,7 @@
 #include "space.hpp"
 #include <array>
 #include <controller.hpp>
+#include <mutex>
 
 #include <iostream>
 #include <random>
@@ -149,7 +150,8 @@ namespace chess::controller {
         };
 
         mutable std::unordered_map< uint64_t, cache_entry > position_cache;
-
+        mutable std::mutex cache_mutex;
+        
         bool        should_close;
         std::thread runner;
 

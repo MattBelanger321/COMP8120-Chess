@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <thread>
 #include <future>
+#include <mutex>
 
 namespace chess::controller {
     ai_controller::ai_controller( chromosome_t chromie ) : controller(), chromosome( chromie ) {}
@@ -978,21 +979,29 @@ namespace chess::controller {
     }
 
     float ai_controller::minimax( chess_game & game, const int depth, float alpha, float beta,
-                                  bool white_to_move ) const
+                              bool white_to_move ) const
     {
         uint64_t zobrist_key = compute_zobrist_hash( game.get_board() );
 
-        auto iterator = position_cache.find( zobrist_key );
-        if ( iterator != position_cache.end() && iterator->second.depth >= depth ) {
-            return iterator->second.score;
+        // Thread-safe cache lookup
+        {
+            std::lock_guard<std::mutex> lock(cache_mutex);
+            auto iterator = position_cache.find( zobrist_key );
+            if ( iterator != position_cache.end() && iterator->second.depth >= depth ) {
+                return iterator->second.score;
+            }
         }
 
         if ( depth == 0 || game.get_state() == chess::game_state::white_wins ||
-             game.get_state() == chess::game_state::black_wins || game.get_state() == chess::game_state::draw ) {
+            game.get_state() == chess::game_state::black_wins || game.get_state() == chess::game_state::draw ) {
             // Always evaluate from White's perspective
             float score = evaluate_position( game, true ); // true = from White's perspective
-            // std::cout << "Depth="<<depth << ", white_to_move=" << white_to_move << ", score=" << score << std::endl;
-            position_cache[zobrist_key] = { score, depth };
+            
+            // Thread-safe cache insertion
+            {
+                std::lock_guard<std::mutex> lock(cache_mutex);
+                position_cache[zobrist_key] = { score, depth };
+            }
             return score;
         }
 
@@ -1008,7 +1017,6 @@ namespace chess::controller {
 
                 // After White's move, it's Black's turn
                 float score = minimax( possible_move, depth - 1, alpha, beta, false );
-                // std::cout << "Depth="<<depth << ", white_to_move=" << white_to_move << ", score=" << score << std::endl;
 
                 max_eval = std::max( max_eval, score );
                 alpha = std::max( alpha, score );
@@ -1017,7 +1025,11 @@ namespace chess::controller {
                 }
             }
 
-            position_cache[zobrist_key] = { max_eval, depth };
+            // Thread-safe cache insertion
+            {
+                std::lock_guard<std::mutex> lock(cache_mutex);
+                position_cache[zobrist_key] = { max_eval, depth };
+            }
             return max_eval;
         }
         else {
@@ -1030,7 +1042,6 @@ namespace chess::controller {
                 
                 // After Black's move, it's White's turn
                 float score = minimax( possible_move, depth - 1, alpha, beta, true );
-                // std::cout << "Depth="<<depth << ", white_to_move=" << white_to_move << ", score=" << score << std::endl;
 
                 min_eval = std::min( min_eval, score );
                 beta = std::min( beta, score );
@@ -1039,7 +1050,11 @@ namespace chess::controller {
                 }
             }
 
-            position_cache[zobrist_key] = { min_eval, depth };
+            // Thread-safe cache insertion
+            {
+                std::lock_guard<std::mutex> lock(cache_mutex);
+                position_cache[zobrist_key] = { min_eval, depth };
+            }
             return min_eval;
         }
     }
