@@ -815,6 +815,10 @@ namespace chess::controller {
         chess_game game_copy = game;
         game_copy.set_turn( white );
 
+        if (game.checkmate(false)) {
+            return 1000;
+        }
+
         float                                          score = 0;
         std::chrono::high_resolution_clock::time_point start, end;
         std::chrono::microseconds                      duration;
@@ -1159,7 +1163,9 @@ namespace chess::controller {
                 play();
             }
             catch ( std::exception const & e ) {
-                std::cout << "AI Crashed: " << e.what() << "\n";
+                if (!game.checkmate(true) && !game.checkmate(false)) {
+                    std::cout << "AI Crashed: " << e.what() << "\n";
+                }
             }
         } );
     }
