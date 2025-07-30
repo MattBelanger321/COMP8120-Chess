@@ -81,6 +81,12 @@ int main()
 
         chess::controller::server_controller server( 8080 );
 
+        nlohmann::json                   chromie_json = nlohmann::json::parse( std::ifstream( "chromosome.json" ) );
+        chess::controller::chromosome_t  chromie( chromie_json["chromosome"].get< std::vector< float > >() );
+        chess::controller::ai_controller ai( chromie );
+
+        ai.activate();
+
         if ( loopy.joinable() )
             loopy.join();
     }
