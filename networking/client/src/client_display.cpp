@@ -150,7 +150,7 @@ namespace chess::networking {
         ImGui::Begin( "Control Panel", nullptr,
                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
-        ImGui::Button( "I Am A Button" );
+        ImGui::Button( "Dump Board State to Terminal" );
         ImGui::End();
     }
 
