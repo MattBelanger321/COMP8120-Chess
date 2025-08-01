@@ -8,6 +8,7 @@
 #include "space.hpp"
 #include <array>
 #include <controller.hpp>
+#include <mutex>
 
 #include <iostream>
 #include <random>
@@ -113,32 +114,34 @@ namespace chess::controller {
         *pieces::piece::itopos( 4, 4 ), *pieces::piece::itopos( 4, 5 ), *pieces::piece::itopos( 5, 5 ),
         *pieces::piece::itopos( 5, 4 ) };
 
+    struct zobrist_t {
+        uint64_t piece_square[12][64];
+        uint64_t castling_availability[4];
+        uint64_t white_to_move;
+
+        zobrist_t()
+        {
+            std::mt19937_64                           rng( 20250517 );
+            std::uniform_int_distribution< uint64_t > distribution;
+
+            for ( int i = 0; i < 12; i++ ) {
+                for ( int j = 0; j < 64; j++ ) {
+                    piece_square[i][j] = distribution( rng );
+                }
+            }
+
+            for ( int i = 0; i < 4; i++ ) {
+                castling_availability[i] = distribution( rng );
+            }
+
+            white_to_move = distribution( rng );
+        }
+    };
+
     class ai_controller : public controller {
     private:
         chromosome_t chromosome;
-        struct zobrist_t {
-            uint64_t piece_square[12][64];
-            uint64_t castling_availability[4];
-            uint64_t white_to_move;
 
-            zobrist_t()
-            {
-                std::mt19937_64                           rng( 20250517 );
-                std::uniform_int_distribution< uint64_t > distribution;
-
-                for ( int i = 0; i < 12; i++ ) {
-                    for ( int j = 0; j < 64; j++ ) {
-                        piece_square[i][j] = distribution( rng );
-                    }
-                }
-
-                for ( int i = 0; i < 4; i++ ) {
-                    castling_availability[i] = distribution( rng );
-                }
-
-                white_to_move = distribution( rng );
-            }
-        };
         zobrist_t zobrist_hash;
 
         struct cache_entry {
@@ -147,7 +150,8 @@ namespace chess::controller {
         };
 
         mutable std::unordered_map< uint64_t, cache_entry > position_cache;
-
+        mutable std::mutex cache_mutex;
+        
         bool        should_close;
         std::thread runner;
 
@@ -174,8 +178,8 @@ namespace chess::controller {
 
         float  move_score( const chess_game & game, const move_t move ) const;
         float  order_moves( const chess_game & game ) const;
-        float  minimax( const chess_game & game, const int depth, float alpha, float beta,
-                        const bool maximizing_player ) const;
+        float  minimax( chess_game & game, const int depth, float alpha, float beta,
+                        bool maximizing_player ) const;
         move_t select_best_move( const int depth ) const;
         float  evaluate_position() const;
         float  evaluate_position( const chess_game & board, const bool white ) const;

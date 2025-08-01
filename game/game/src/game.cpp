@@ -309,6 +309,9 @@ namespace chess {
         }
     }
 
+    void chess_game::add_piece_at( pieces::piece const &p, pieces::position_t const position) {
+        game_board.add_piece_at(p, position);
+    }
     void chess_game::remove_piece_at( pieces::position_t position ) { game_board.remove_piece_at( position ); }
 
     std::vector< std::string > chess_game::get_move_history() const { return game_board.get_move_history(); }

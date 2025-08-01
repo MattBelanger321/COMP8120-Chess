@@ -155,7 +155,7 @@ namespace chess::controller {
         ImGui::Begin( "Control Panel", nullptr,
                       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse |
                           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse );
-        if ( ImGui::Button( "I Am A Button" ) ) {
+        if ( ImGui::Button( "Dump Board State to Terminal" ) ) {
             std::cout << game.to_string() << std::endl;
         }
         ImGui::End();

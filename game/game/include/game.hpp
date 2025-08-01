@@ -173,6 +173,8 @@ namespace chess {
         std::vector< game::space > find_attackers( game::space const & src, bool const victim_color ) const;
 
         bool                              can_castle( bool const color ) const;
+
+        void                              add_piece_at(pieces::piece const &p, pieces::position_t const position);
         void                              remove_piece_at( pieces::position_t position );
         std::vector< std::string >        get_move_history() const;
         attack_map const                  generate_attack_map( game::board ) const;
